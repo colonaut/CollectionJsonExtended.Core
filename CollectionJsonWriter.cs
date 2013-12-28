@@ -305,8 +305,8 @@ namespace CollectionJsonExtended.Core
     public sealed class LinkRepresentation : IRepresentation
     {
         
-        [JsonConverter(typeof(StringEnumConverter))]
-        public RelationType Rel { get; set; }
+        
+        public string Rel { get; set; }
         
         public Uri Href { get; set; }
 
@@ -317,13 +317,16 @@ namespace CollectionJsonExtended.Core
         [JsonConverter(typeof(StringEnumConverter))]
         public RenderType Render { get; set; }
 
+        ////TODO!!!
+        ////DEPR, done in client??? as string!!!
+        //public enum RelationType
+        //{
+        //    rss,
+        //    feed
+        //}
 
-        public enum RelationType
-        {
-            rss,
-            feed
-        }
-
+        //TODO!!!
+        //DEPR, done in client??? or use this... adapt specs
         public enum RenderType
         {
             href,
