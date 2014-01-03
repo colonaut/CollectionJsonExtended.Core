@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace CollectionJsonExtended.Core
+namespace CollectionJsonExtended.Core.Attributes
 {
     /// <summary>
     /// Instructs the CollectionJson serialization and deserialization to use the given concrete type for the abstract or interface property.
@@ -29,14 +29,4 @@ namespace CollectionJsonExtended.Core
             set { _prompt = value; }
         }
     }
-
-
-    [AttributeUsage(AttributeTargets.Property, Inherited = false, AllowMultiple = false)]
-    public class CollectionJsonPropertyAttribute : Attribute
-    {
-
-        public string Prompt { get; set; }
-
-    }
-
 }

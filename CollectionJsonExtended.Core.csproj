@@ -42,20 +42,24 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="CollectionJsonAttributes.cs" />
+    <Compile Include="Attributes\CollectionJsonPropertyAttribute.cs" />
+    <Compile Include="Attributes\CollectionJsonConcreteTypeAttribute.cs" />
     <Compile Include="CollectionJsonReader.cs" />
     <Compile Include="CollectionJsonSerializerSettings.cs" />
     <Compile Include="CollectionJsonWriter.cs" />
     <Compile Include="DataRepresentation.cs" />
     <Compile Include="DataRepresentationConverter.cs" />
+    <Compile Include="ErrorRepresentation.cs" />
     <Compile Include="Extensions\CollectionJsonReaderExtensions.cs" />
     <Compile Include="Extensions\PropertyInfoExtensions.cs" />
     <Compile Include="Extensions\StringExtensions.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="UrlInfo.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
   </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.

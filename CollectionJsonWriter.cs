@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Linq;
 using System.Net;
 using Newtonsoft.Json;
@@ -9,7 +10,7 @@ using Newtonsoft.Json.Serialization;
 namespace CollectionJsonExtended.Core
 {
     //TODO implement settings for collection json writer and implement entity handling (only dataObject handling currentlly implemented)
-    
+
     public interface IRepresentation
     {
         
@@ -20,7 +21,22 @@ namespace CollectionJsonExtended.Core
 
     }
 
+    public enum As
+    {
+        Collection,
+        Template,
+        Error
+    }
 
+    public enum With
+    {
+        All,
+        Template,
+        Queries
+    }
+
+
+    //The abstract (initializes static stuff)
     public abstract class CollectionJsonWriter
     {
         //why is all the following defined in an absrtract? http://stackoverflow.com/a/9665168
@@ -30,11 +46,10 @@ namespace CollectionJsonExtended.Core
             DefaultSerializerSettings = new CollectionJsonSerializerSettings
             {
                 DataPropertyCasing = DataPropertyCasing.CamelCase,
-                ConversionMethod = ConversionMethod.Data
+                ConversionMethod = ConversionMethod.Entity
             };
         }
 
-        
         /*Ctor*/
         public static string Serialize(IRepresentation representation)
         {
@@ -90,7 +105,8 @@ namespace CollectionJsonExtended.Core
 
         public CollectionJsonWriter(TEntity entity,
             Uri requestUri,
-            CollectionJsonSerializerSettings settings = null)
+            CollectionJsonSerializerSettings settings = null,
+            As writer = As.Collection)
         {
             if (settings != null)
                 _settings = settings;
@@ -131,6 +147,8 @@ namespace CollectionJsonExtended.Core
 
     }
 
+    
+    //Representations
 
     public sealed class CollectionRepresentation<TEntity> : IRepresentation<TEntity> where TEntity : class, new()
     {
@@ -198,38 +216,6 @@ namespace CollectionJsonExtended.Core
         public WriteTemplateRepresentation<TEntity> Template { get; set; }
    }
 
-    public sealed class ErrorRepresentation : IRepresentation
-    {
-
-        readonly HttpStatusCode _httpStatusCode;
-
-        public ErrorRepresentation(HttpStatusCode httpStatusCode, string message = null)
-        {
-            _httpStatusCode = httpStatusCode;
-            Message = message;
-        }
-
-
-        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
-        public string Title
-        {
-            get
-            {
-                return _httpStatusCode.ToString();
-            }
-        }
-
-        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
-        public int Code
-        {
-            get { return (int)_httpStatusCode; }
-        }
-
-        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
-        public string Message { get; set; }
-
-    }
-
 
     public sealed class ItemRepresentation<TEntity> : IRepresentation<TEntity> where TEntity : class, new()
     {
@@ -278,7 +264,7 @@ namespace CollectionJsonExtended.Core
        
         public WriteTemplateRepresentation(CollectionJsonSerializerSettings settings)
         {
-            Serialize = settings.ConversionMethod;
+            ConversionMethod = settings.ConversionMethod;
         }
 
         //TODO: we might not have to care about the settings here. we might remove the passing of the settings to here, once this descision is settled
@@ -286,7 +272,7 @@ namespace CollectionJsonExtended.Core
         //if ettings are on entity, the clint must convert the template to an read template, which can then be read on entity base
         
         [JsonConverter(typeof(StringEnumConverter))] //we might not need that...
-        public ConversionMethod Serialize;
+        public ConversionMethod ConversionMethod;
 
         [JsonConverter(typeof(DataRepresentationConverter))]
         public object Data {

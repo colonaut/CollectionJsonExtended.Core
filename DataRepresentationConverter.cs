@@ -315,7 +315,7 @@ namespace CollectionJsonExtended.Core
         public override object ReadJson(JsonReader reader, Type objectType, object existingValue, JsonSerializer serializer)
         {
 
-            throw new NotImplementedException("This hould be die with readTemplate reflection");
+            throw new NotImplementedException("This should be done with readTemplate reflection");
             
             if (reader.TokenType != JsonToken.StartArray)
                 throw new ArgumentException("data must be of type [] (JArray)");

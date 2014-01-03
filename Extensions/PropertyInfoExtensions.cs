@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using CollectionJsonExtended.Core.Attributes;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
 
