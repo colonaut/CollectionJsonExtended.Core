@@ -31,7 +31,7 @@ namespace CollectionJsonExtended.Core
             EntityType = entityType;
         }
 
-
+        //TODO we need host / areas / and so on here (maybe only host, area could be prefix...??? check in mvc attribute routing)
         public Type EntityType { get; private set; }
 
         public ParameterInfo[] Params { get; set; }

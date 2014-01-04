@@ -95,39 +95,39 @@ namespace CollectionJsonExtended.Core
             Error = new ErrorRepresentation(httpStatusCode, message);
         }
 
-        public CollectionJsonWriter(TEntity entity, //will be depreceated
-           CollectionJsonSerializerSettings settings = null)
-        {
-            if (settings != null)
-                _settings = settings;
-            Collection = new CollectionRepresentation<TEntity>(entity, _settings);
-        }
+        //public CollectionJsonWriter(TEntity entity, //will be depreceated
+        //   CollectionJsonSerializerSettings settings = null)
+        //{
+        //    if (settings != null)
+        //        _settings = settings;
+        //    Collection = new CollectionRepresentation<TEntity>(entity, _settings);
+        //}
 
         public CollectionJsonWriter(TEntity entity,
-            Uri requestUri,
+            IEnumerable<UrlInfoProvider> urlInfoCollection,
             CollectionJsonSerializerSettings settings = null,
             As writer = As.Collection)
         {
             if (settings != null)
                 _settings = settings;
-            Collection = new CollectionRepresentation<TEntity>(entity, _settings, requestUri);
+            Collection = new CollectionRepresentation<TEntity>(entity, _settings, urlInfoCollection);
         }
 
-        public CollectionJsonWriter(IEnumerable<TEntity> entities,//will be depreceated
-            CollectionJsonSerializerSettings settings = null)
-        {
-            if (settings != null)
-                _settings = settings;
-            Collection = new CollectionRepresentation<TEntity>(entities, _settings);
-        }
+        //public CollectionJsonWriter(IEnumerable<TEntity> entities,//will be depreceated
+        //    CollectionJsonSerializerSettings settings = null)
+        //{
+        //    if (settings != null)
+        //        _settings = settings;
+        //    Collection = new CollectionRepresentation<TEntity>(entities, _settings);
+        //}
 
         public CollectionJsonWriter(IEnumerable<TEntity> entities,
-            Uri requestUri,
+            IEnumerable<UrlInfoProvider> urlInfoCollection,
             CollectionJsonSerializerSettings settings = null)
         {
             if (settings != null)
                 _settings = settings;
-            Collection = new CollectionRepresentation<TEntity>(entities, _settings, requestUri);
+            Collection = new CollectionRepresentation<TEntity>(entities, _settings, urlInfoCollection);
         }
         
 
@@ -154,8 +154,7 @@ namespace CollectionJsonExtended.Core
     {
         /* Private fields */
         string _version = "1.0";
-        Uri _href = new Uri(string.Format("http://www.example.org/{0}", typeof(TEntity).Name.ToLowerInvariant()));
-        
+        IEnumerable<UrlInfoProvider> _urlInfoCollection;
 
         /* Ctor */
         public CollectionRepresentation(CollectionJsonSerializerSettings settings) //collection representing a template //TODO: settings transportation
@@ -166,26 +165,26 @@ namespace CollectionJsonExtended.Core
 
         public CollectionRepresentation(TEntity entity,
             CollectionJsonSerializerSettings settings,
-            Uri href = null) //Uri will be required
+            IEnumerable<UrlInfoProvider> urlInfoCollection) //Uri will be required
         {
-            if (href != null)
-                _href = href;
+            _urlInfoCollection = urlInfoCollection;
             
-            Items = new List<ItemRepresentation<TEntity>> { new ItemRepresentation<TEntity>(entity, settings, _href) };
+            Items = new List<ItemRepresentation<TEntity>> { new ItemRepresentation<TEntity>(entity, settings, _urlInfoCollection) };
         }
 
         public CollectionRepresentation(IEnumerable<TEntity> entities,
             CollectionJsonSerializerSettings settings,
-            Uri href = null)
+            IEnumerable<UrlInfoProvider> urlInfoCollection)
         {
-            if (href != null)
-                _href = href;
+            _urlInfoCollection = urlInfoCollection;
+
+            Items = new List<ItemRepresentation<TEntity>>(entities.Select(entity =>
+                new ItemRepresentation<TEntity>(entity, settings, _urlInfoCollection)));
             
-            Items = new List<ItemRepresentation<TEntity>>(entities.Select(entity => new ItemRepresentation<TEntity>(entity, settings, _href)));
-
             Template = new WriteTemplateRepresentation<TEntity>(settings);
-
+            
             Links = new List<LinkRepresentation>();
+            
             Queries = new List<QueryRepresentation>();
         }
 
@@ -197,10 +196,15 @@ namespace CollectionJsonExtended.Core
             set { _version = value; }
         }
 
-        public Uri Href
+        public string Href
         {
-            get { return _href; }
-            set { _href = value; }
+            get
+            {
+                var urlInfo = _urlInfoCollection.SingleOrDefault(ui => ui.Kind == Is.Base);
+                if (urlInfo != null)
+                    return urlInfo.VirtualPath;
+                return null;
+            }
         }
 
         [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
@@ -220,26 +224,36 @@ namespace CollectionJsonExtended.Core
     public sealed class ItemRepresentation<TEntity> : IRepresentation<TEntity> where TEntity : class, new()
     {
         readonly CollectionJsonSerializerSettings _settings;
-        private Uri _href = new Uri(string.Format("http://www.example.org/{0}/[identifier]", 
-            typeof(TEntity).Name.ToLowerInvariant()));
-        private TEntity _entity;
+        TEntity _entity;
+        IEnumerable<UrlInfoProvider> _urlInfoCollection; 
 
         public ItemRepresentation(TEntity entity,
             CollectionJsonSerializerSettings settings,
-            Uri href = null) //href will be required
+            IEnumerable<UrlInfoProvider> urlInfoCollection) //href will be required
         {
-            if (href != null)
-                _href = href;
-            
+            _urlInfoCollection = urlInfoCollection;
             _entity = entity;
             _settings = settings;
         }
 
 
-        public Uri Href
+        public string Href
         {
-            get { return _href; }
-            set { _href = value; }
+            get
+            {
+                //TODO: we need the identifier attribute... or always use id.
+                var urlInfo = _urlInfoCollection
+                    .SingleOrDefault(ui => ui.Kind == Is.Item);
+                if (urlInfo != null)
+                {
+                    var virtualPath = urlInfo.VirtualPath;
+                    foreach (var paramInfo in urlInfo.Params)
+                        virtualPath = virtualPath.Replace("{" + paramInfo.Name + "}", "hamsterbacke");
+                    return virtualPath;
+
+                }
+                return null;
+            }
         }
 
         [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
