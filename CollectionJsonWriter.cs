@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
 using System.Net;
+using CollectionJsonExtended.Core.Extensions;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
 using Newtonsoft.Json.Serialization;
@@ -95,39 +96,23 @@ namespace CollectionJsonExtended.Core
             Error = new ErrorRepresentation(httpStatusCode, message);
         }
 
-        //public CollectionJsonWriter(TEntity entity, //will be depreceated
-        //   CollectionJsonSerializerSettings settings = null)
-        //{
-        //    if (settings != null)
-        //        _settings = settings;
-        //    Collection = new CollectionRepresentation<TEntity>(entity, _settings);
-        //}
-
         public CollectionJsonWriter(TEntity entity,
-            IEnumerable<UrlInfoProvider> urlInfoCollection,
+            //IEnumerable<UrlInfo> urlInfoCollection,
             CollectionJsonSerializerSettings settings = null,
             As writer = As.Collection)
         {
             if (settings != null)
                 _settings = settings;
-            Collection = new CollectionRepresentation<TEntity>(entity, _settings, urlInfoCollection);
+            Collection = new CollectionRepresentation<TEntity>(entity, _settings);
         }
 
-        //public CollectionJsonWriter(IEnumerable<TEntity> entities,//will be depreceated
-        //    CollectionJsonSerializerSettings settings = null)
-        //{
-        //    if (settings != null)
-        //        _settings = settings;
-        //    Collection = new CollectionRepresentation<TEntity>(entities, _settings);
-        //}
-
         public CollectionJsonWriter(IEnumerable<TEntity> entities,
-            IEnumerable<UrlInfoProvider> urlInfoCollection,
+            //IEnumerable<UrlInfo> urlInfoCollection,
             CollectionJsonSerializerSettings settings = null)
         {
             if (settings != null)
                 _settings = settings;
-            Collection = new CollectionRepresentation<TEntity>(entities, _settings, urlInfoCollection);
+            Collection = new CollectionRepresentation<TEntity>(entities, _settings);
         }
         
 
@@ -154,7 +139,9 @@ namespace CollectionJsonExtended.Core
     {
         /* Private fields */
         string _version = "1.0";
-        IEnumerable<UrlInfoProvider> _urlInfoCollection;
+        string _href;
+        //DEPR
+        //IEnumerable<UrlInfo> _urlInfoCollection;
 
         /* Ctor */
         public CollectionRepresentation(CollectionJsonSerializerSettings settings) //collection representing a template //TODO: settings transportation
@@ -164,22 +151,26 @@ namespace CollectionJsonExtended.Core
         }
 
         public CollectionRepresentation(TEntity entity,
-            CollectionJsonSerializerSettings settings,
-            IEnumerable<UrlInfoProvider> urlInfoCollection) //Uri will be required
+            CollectionJsonSerializerSettings settings) //Uri will be required
         {
-            _urlInfoCollection = urlInfoCollection;
-            
-            Items = new List<ItemRepresentation<TEntity>> { new ItemRepresentation<TEntity>(entity, settings, _urlInfoCollection) };
+            //DEPR
+            //_urlInfoCollection = urlInfoCollection;
+
+            _href = this.GetVirtualPath();
+            Items = new List<ItemRepresentation<TEntity>>
+                    {
+                        new ItemRepresentation<TEntity>(entity, settings)
+                    };
         }
 
         public CollectionRepresentation(IEnumerable<TEntity> entities,
-            CollectionJsonSerializerSettings settings,
-            IEnumerable<UrlInfoProvider> urlInfoCollection)
+            CollectionJsonSerializerSettings settings)
         {
-            _urlInfoCollection = urlInfoCollection;
+            //DEPR
+            //_urlInfoCollection = urlInfoCollection;
 
             Items = new List<ItemRepresentation<TEntity>>(entities.Select(entity =>
-                new ItemRepresentation<TEntity>(entity, settings, _urlInfoCollection)));
+                new ItemRepresentation<TEntity>(entity, settings)));
             
             Template = new WriteTemplateRepresentation<TEntity>(settings);
             
@@ -198,13 +189,7 @@ namespace CollectionJsonExtended.Core
 
         public string Href
         {
-            get
-            {
-                var urlInfo = _urlInfoCollection.SingleOrDefault(ui => ui.Kind == Is.Base);
-                if (urlInfo != null)
-                    return urlInfo.VirtualPath;
-                return null;
-            }
+            get { return _href; }
         }
 
         [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
@@ -225,35 +210,26 @@ namespace CollectionJsonExtended.Core
     {
         readonly CollectionJsonSerializerSettings _settings;
         TEntity _entity;
-        IEnumerable<UrlInfoProvider> _urlInfoCollection; 
-
+        readonly string _href;
+        //DEPR
+        //readonly IEnumerable<UrlInfoBase> _urlInfoCollection; 
+        
         public ItemRepresentation(TEntity entity,
-            CollectionJsonSerializerSettings settings,
-            IEnumerable<UrlInfoProvider> urlInfoCollection) //href will be required
+            CollectionJsonSerializerSettings settings)
         {
-            _urlInfoCollection = urlInfoCollection;
+            //DEPR
+            //_urlInfoCollection = urlInfoCollection;
+            _href = "TODO with extension";
             _entity = entity;
             _settings = settings;
         }
 
+       
+
 
         public string Href
         {
-            get
-            {
-                //TODO: we need the identifier attribute... or always use id.
-                var urlInfo = _urlInfoCollection
-                    .SingleOrDefault(ui => ui.Kind == Is.Item);
-                if (urlInfo != null)
-                {
-                    var virtualPath = urlInfo.VirtualPath;
-                    foreach (var paramInfo in urlInfo.Params)
-                        virtualPath = virtualPath.Replace("{" + paramInfo.Name + "}", "hamsterbacke");
-                    return virtualPath;
-
-                }
-                return null;
-            }
+            get { return _href; }
         }
 
         [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
