@@ -151,11 +151,8 @@ namespace CollectionJsonExtended.Core
         }
 
         public CollectionRepresentation(TEntity entity,
-            CollectionJsonSerializerSettings settings) //Uri will be required
+            CollectionJsonSerializerSettings settings)
         {
-            //DEPR
-            //_urlInfoCollection = urlInfoCollection;
-
             _href = this.GetVirtualPath();
             Items = new List<ItemRepresentation<TEntity>>
                     {
@@ -166,9 +163,6 @@ namespace CollectionJsonExtended.Core
         public CollectionRepresentation(IEnumerable<TEntity> entities,
             CollectionJsonSerializerSettings settings)
         {
-            //DEPR
-            //_urlInfoCollection = urlInfoCollection;
-
             Items = new List<ItemRepresentation<TEntity>>(entities.Select(entity =>
                 new ItemRepresentation<TEntity>(entity, settings)));
             
@@ -210,16 +204,14 @@ namespace CollectionJsonExtended.Core
     {
         readonly CollectionJsonSerializerSettings _settings;
         TEntity _entity;
-        readonly string _href;
-        //DEPR
-        //readonly IEnumerable<UrlInfoBase> _urlInfoCollection; 
+       string _href;
         
         public ItemRepresentation(TEntity entity,
             CollectionJsonSerializerSettings settings)
         {
             //DEPR
             //_urlInfoCollection = urlInfoCollection;
-            _href = "TODO with extension";
+            _href = this.GetVirtualPath();
             _entity = entity;
             _settings = settings;
         }

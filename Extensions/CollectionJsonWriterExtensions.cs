@@ -13,6 +13,7 @@ namespace CollectionJsonExtended.Core.Extensions
         public static string GetVirtualPath<TEntity>(this ItemRepresentation<TEntity> representation)
             where TEntity : class, new()
         {
+            
             var urlInfo = UrlInfoBase.Find(typeof (TEntity)).SingleOrDefault(ui => ui.Kind == Is.Item);
             if (urlInfo != null)
             {
