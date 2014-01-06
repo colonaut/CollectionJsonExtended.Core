@@ -55,6 +55,7 @@
     <Compile Include="Extensions\PropertyInfoExtensions.cs" />
     <Compile Include="Extensions\StringExtensions.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Singleton.cs" />
     <Compile Include="UrlInfoBase.cs" />
   </ItemGroup>
   <ItemGroup>

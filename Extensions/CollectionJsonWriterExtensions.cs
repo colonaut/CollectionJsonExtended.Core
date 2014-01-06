@@ -13,25 +13,26 @@ namespace CollectionJsonExtended.Core.Extensions
         public static string GetVirtualPath<TEntity>(this ItemRepresentation<TEntity> representation)
             where TEntity : class, new()
         {
-            
-            var urlInfo = UrlInfoBase.Find(typeof (TEntity)).SingleOrDefault(ui => ui.Kind == Is.Item);
-            if (urlInfo != null)
-            {
-                var virtualPath = urlInfo.VirtualPath;
-                foreach (var paramInfo in urlInfo.Params)
-                    virtualPath = virtualPath.Replace("{" + paramInfo.Name + "}", "hamsterbackeInWriterExtensions");
-                return virtualPath;
-            }
-            return null;
+            UrlInfoBase urlInfo;
+            if (!Singleton<UrlInfoCollection>.Instance
+                .TryFindSingle(typeof (TEntity), Is.Item, out urlInfo))
+                return null;
+            var virtualPath = urlInfo.VirtualPath;
+            foreach (var paramInfo in urlInfo.Params)
+                virtualPath = virtualPath.Replace("{" + paramInfo.Name + "}", "hamsterbackeInWriterExtensions");
+            return virtualPath;
+
         }
 
         public static string GetVirtualPath<TEntity>(this CollectionRepresentation<TEntity> representation)
             where TEntity : class, new()
         {
-            var urlInfo = UrlInfoBase.Find(typeof (TEntity)).SingleOrDefault(ui => ui.Kind == Is.Base);
-            if (urlInfo != null)
-                return urlInfo.VirtualPath;
-            return null;
+            UrlInfoBase urlInfo;
+            if (!Singleton<UrlInfoCollection>.Instance
+                .TryFindSingle(typeof(TEntity), Is.Base, out urlInfo))
+                return null;
+            return urlInfo.VirtualPath;
+
         }
 
     }

@@ -19,16 +19,6 @@ namespace CollectionJsonExtended.Core
     
     public class UrlInfoBase
     {
-        static readonly IDictionary<Type, IList<UrlInfoBase>> EntityUrlInfoBaseCache;
-
-        protected static readonly IList<UrlInfoBase> Cache; //protected for fake (cannot be private)
-
-        static UrlInfoBase()
-        {
-            Cache = new List<UrlInfoBase>();
-            EntityUrlInfoBaseCache = new Dictionary<Type, IList<UrlInfoBase>>();
-        }
-
         protected UrlInfoBase(Type entityType)
         {
             EntityType = entityType;
@@ -51,63 +41,74 @@ namespace CollectionJsonExtended.Core
 
         public virtual void Publish()
         {
-            Cache.Add(this);            
+            Singleton<UrlInfoCollection>.Instance.Add(this);            
         }
+    }
 
-        public static void Remove(Type entityType)
-        {
-            EntityUrlInfoBaseCache.Remove(entityType);
-            foreach (var urlInfo in Cache)
-            {
-                if (urlInfo.EntityType == entityType)
-                    Cache.Remove(urlInfo);
-            }
-            
-            EntityUrlInfoBaseCache.Clear();
-            Cache.Clear();
-        }
 
+    public interface IUrlInfoCollection
+    {
+        bool Add(UrlInfoBase urlInfo);
+
+        IEnumerable<UrlInfoBase> Find(Type entityType);
+
+        IEnumerable<UrlInfoBase> Find(Type entityType, Is kind);
+
+        bool TryFindSingle(Type entityType, Is kind, out UrlInfoBase value);
+    }
+
+    public sealed class UrlInfoCollection : IUrlInfoCollection
+    {
+        readonly IDictionary<Type, IList<UrlInfoBase>> _collectionByEntityType;
+        readonly IList<UrlInfoBase> _collection;
         
-        public static IEnumerable<UrlInfoBase> Find(Type entityType)
+        public UrlInfoCollection()
+        {
+            _collection = new List<UrlInfoBase>();
+            _collectionByEntityType = new Dictionary<Type, IList<UrlInfoBase>>();
+        }
+
+
+        public bool Add(UrlInfoBase urlInfo)
+        {
+            if (_collection.Contains(urlInfo)) //prevent multiple records of the same instance
+                return false;
+            _collection.Add(urlInfo);
+            return true;
+        }
+
+        public IEnumerable<UrlInfoBase> Find(Type entityType)
         {
             IList<UrlInfoBase> result;
-            if (!EntityUrlInfoBaseCache.TryGetValue(entityType, out result))
+            if (!_collectionByEntityType.TryGetValue(entityType, out result))
             {
-                result = Cache.Where(c => c.EntityType == entityType).ToList();
-                EntityUrlInfoBaseCache.Add(entityType, result);
+                result = _collection.Where(c => c.EntityType == entityType).ToList();
+                _collectionByEntityType.Add(entityType, result);
             }
-            return EntityUrlInfoBaseCache[entityType];
-        } 
-
-    }
-
-
-    //we try to create a singleton.... UrlInfo Cache! (we want to mock it, this ts dumb with a static cache...)
-    //http://msdn.microsoft.com/en-us/library/ms998558.aspx
-    //http://stackoverflow.com/questions/1928264/object-that-is-needed-throughout-the-application
-    public sealed class UrlInfoCache
-    {
-        private static volatile UrlInfoCache _instance;
-        private static object _syncRoot = new Object();
-
-        private UrlInfoCache() { }
-
-        public static UrlInfoCache Instance
-        {
-            get
-            {
-                if (_instance == null)
-                {
-                    lock (_syncRoot)
-                    {
-                        if (_instance == null)
-                            _instance = new UrlInfoCache();
-                    }
-                }
-
-                return _instance;
-            }
+            return _collectionByEntityType[entityType];
         }
+
+        public IEnumerable<UrlInfoBase> Find(Type entityType, Is kind)
+        {
+            return Find(entityType).Where(c => c.Kind == kind).ToList();
+        }
+
+        public IEnumerable<TInfo> Find<TInfo>(Type entityType) where TInfo : UrlInfoBase
+        {
+            return _collection.OfType<TInfo>().Where(c => c.EntityType == entityType).ToList();
+        }
+
+        public bool TryFindSingle(Type entityType, Is kind, out UrlInfoBase value)
+        {
+            value = Find(entityType, kind).SingleOrDefault();
+            if (value != null)
+                return true;
+            return false;
+        }
+
+        //we can ass statics here, make the class public and use Singleton for it.... add would the not be public...
     }
+
+    
 
 }
