@@ -28,6 +28,7 @@ namespace CollectionJsonExtended.Core
         //TODO we need host / areas / and so on here (maybe only host, area could be prefix...??? check in mvc attribute routing)
         public Type EntityType { get; private set; }
 
+        //probably depreceated...
         public ParameterInfo[] Params { get; set; }
 
         public Is Kind { get; set; }
@@ -37,18 +38,23 @@ namespace CollectionJsonExtended.Core
         public string Render { get; set; }
 
         public string VirtualPath { get; set; }
+        public string PrimaryKeyTemplate { get; set; }
+        public PropertyInfo PrimaryKeyProperty { get; set; }
 
-
+        bool _isPublished;
         public virtual void Publish()
         {
-            Singleton<UrlInfoCollection>.Instance.Add(this);            
-        }
+            if (_isPublished)
+                return;
+            Singleton<UrlInfoCollection>.Instance.Add(this);
+            _isPublished = true;
+        }        
     }
 
 
     public interface IUrlInfoCollection
     {
-        bool Add(UrlInfoBase urlInfo);
+        void Add(UrlInfoBase urlInfo);
 
         IEnumerable<UrlInfoBase> Find(Type entityType);
 
@@ -69,12 +75,12 @@ namespace CollectionJsonExtended.Core
         }
 
 
-        public bool Add(UrlInfoBase urlInfo)
+        public void Add(UrlInfoBase urlInfo)
         {
-            if (_collection.Contains(urlInfo)) //prevent multiple records of the same instance
-                return false;
+            //if (_collection.Contains(urlInfo)) //prevent multiple records of the same instance
+            //    return false;
             _collection.Add(urlInfo);
-            return true;
+            //return true;
         }
 
         public IEnumerable<UrlInfoBase> Find(Type entityType)
