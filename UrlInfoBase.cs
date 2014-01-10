@@ -46,7 +46,7 @@ namespace CollectionJsonExtended.Core
         {
             if (_isPublished)
                 return;
-            Singleton<UrlInfoCollection>.Instance.Add(this);
+            new SingletonFactory<UrlInfoCollection>().GetInstance().Add(this);
             _isPublished = true;
         }        
     }
@@ -112,7 +112,6 @@ namespace CollectionJsonExtended.Core
             return false;
         }
 
-        //we can ass statics here, make the class public and use Singleton for it.... add would the not be public...
     }
 
     
