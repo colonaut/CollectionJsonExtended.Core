@@ -139,10 +139,7 @@ namespace CollectionJsonExtended.Core
     {
         /* Private fields */
         string _version = "1.0";
-        string _href;
-        //DEPR
-        //IEnumerable<UrlInfo> _urlInfoCollection;
-
+        
         /* Ctor */
         public CollectionRepresentation(CollectionJsonSerializerSettings settings) //collection representing a template //TODO: settings transportation
         {
@@ -153,7 +150,6 @@ namespace CollectionJsonExtended.Core
         public CollectionRepresentation(TEntity entity,
             CollectionJsonSerializerSettings settings)
         {
-            _href = this.GetVirtualPath();
             Items = new List<ItemRepresentation<TEntity>>
                     {
                         new ItemRepresentation<TEntity>(entity, settings)
@@ -183,7 +179,7 @@ namespace CollectionJsonExtended.Core
 
         public string Href
         {
-            get { return _href; }
+            get { return this.ParseVirtualPath(); }
         }
 
         [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
@@ -204,24 +200,18 @@ namespace CollectionJsonExtended.Core
     {
         readonly CollectionJsonSerializerSettings _settings;
         TEntity _entity;
-       string _href;
         
         public ItemRepresentation(TEntity entity,
             CollectionJsonSerializerSettings settings)
         {
-            //DEPR
-            //_urlInfoCollection = urlInfoCollection;
-            _href = this.GetVirtualPath();
             _entity = entity;
             _settings = settings;
         }
 
        
-
-
         public string Href
         {
-            get { return _href; }
+            get { return this.ParseVirtualPath(_entity); }
         }
 
         [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]

@@ -11,25 +11,23 @@ namespace CollectionJsonExtended.Core.Extensions
 {
     public static class CollectionJsonWriterExtensions
     {
-        public static string GetVirtualPath<TEntity>(this ItemRepresentation<TEntity> representation)
+        public static string ParseVirtualPath<TEntity>(this ItemRepresentation<TEntity> representation, TEntity entity)
             where TEntity : class, new()
         {
+            //TODO: how to deal with renderType (TryFindSingle for i.e. Is.Item crashes, when we have another Is.Item that is for another renderType...)
+            //MayBe add another method?
+
             UrlInfoBase urlInfo;
             if (!SingletonFactory<UrlInfoCollection>.Instance
                 .TryFindSingle(typeof (TEntity), Is.Item, out urlInfo))
                 return null;
             
-            //TODO IDENTIFIER IN CLIENT
-            //Check if a property has the CollectionJsonPropertyAttribute with identifier true.
-            //else look for public (get) of an Id property.
-            //CACHE THE RESULTS!!!!!!
-            //DO all the build up in client and only passthe Identifier credentials here
-
-            var virtualPath = urlInfo.VirtualPath + "TODOOOOOOOO";
+            var primaryKey = urlInfo.PrimaryKeyProperty.GetValue(entity).ToString();
+            var virtualPath = urlInfo.VirtualPath.Replace(urlInfo.PrimaryKeyTemplate, primaryKey);
             return virtualPath;
         }
 
-        public static string GetVirtualPath<TEntity>(this CollectionRepresentation<TEntity> representation)
+        public static string ParseVirtualPath<TEntity>(this CollectionRepresentation<TEntity> representation)
             where TEntity : class, new()
         {
             UrlInfoBase urlInfo;
