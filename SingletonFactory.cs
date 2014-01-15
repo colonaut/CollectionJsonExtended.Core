@@ -13,7 +13,7 @@ namespace CollectionJsonExtended.Core
         private static volatile T _instance;
         private static readonly object _syncRoot = new object();
 
-        public SingletonFactory()
+        private SingletonFactory()
         {
         }
 
@@ -27,12 +27,20 @@ namespace CollectionJsonExtended.Core
 
         public virtual T GetInstance()
         {
-            lock (_syncRoot)
+            return Instance;
+        }
+
+        public static T Instance
+        {
+            get
             {
-                if (_instance == null)
-                    _instance = new T();
+                lock (_syncRoot)
+                {
+                    if (_instance == null)
+                        _instance = new T();
+                }
+                return _instance;
             }
-            return _instance;
         }
     }
 

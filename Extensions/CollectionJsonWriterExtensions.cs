@@ -11,15 +11,11 @@ namespace CollectionJsonExtended.Core.Extensions
 {
     public static class CollectionJsonWriterExtensions
     {
-
-        static readonly ISingletonFactory<UrlInfoCollection> UrlInfoFactory = new SingletonFactory<UrlInfoCollection>();
-
         public static string GetVirtualPath<TEntity>(this ItemRepresentation<TEntity> representation)
             where TEntity : class, new()
         {
-            
             UrlInfoBase urlInfo;
-            if (!UrlInfoFactory.GetInstance()
+            if (!SingletonFactory<UrlInfoCollection>.Instance
                 .TryFindSingle(typeof (TEntity), Is.Item, out urlInfo))
                 return null;
             
@@ -37,7 +33,7 @@ namespace CollectionJsonExtended.Core.Extensions
             where TEntity : class, new()
         {
             UrlInfoBase urlInfo;
-            if (!UrlInfoFactory.GetInstance()
+            if (!SingletonFactory<UrlInfoCollection>.Instance
                 .TryFindSingle(typeof(TEntity), Is.Base, out urlInfo))
                 return null;
             return urlInfo.VirtualPath;
