@@ -67,6 +67,19 @@ namespace CollectionJsonExtended.Core
             return _collection.OfType<TInfo>().Where(c => c.EntityType == entityType).ToList();
         }
 
+        public IEnumerable<TInfo> Find<TInfo>(Type entityType, Is kind) where TInfo : UrlInfoBase
+        {
+            return Find<TInfo>(entityType).Where(c => c.Kind == kind).ToList();
+        }
+
+        public bool TryFindSingle<TInfo>(Type entityType, Is kind, out TInfo value) where TInfo : UrlInfoBase
+        {
+            value = Find<TInfo>(entityType, kind).SingleOrDefault();
+            if (value != null)
+                return true;
+            return false;
+        }
+
         public bool TryFindSingle(Type entityType, Is kind, out UrlInfoBase value)
         {
             value = Find(entityType, kind).SingleOrDefault();

@@ -132,9 +132,9 @@ namespace CollectionJsonExtended.Core
 
     }
 
-    
-    //Representations
-
+    /*****************
+     * Representations
+     *****************/
     public sealed class CollectionRepresentation<TEntity> : IRepresentation<TEntity> where TEntity : class, new()
     {
         /* Private fields */
