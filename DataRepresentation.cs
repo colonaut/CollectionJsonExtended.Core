@@ -3,7 +3,7 @@ using Newtonsoft.Json;
 
 namespace CollectionJsonExtended.Core
 {
-    public class DataRepresentation : IRepresentation
+    public class DataRepresentation : IRepresentation //TODO: abstracts and InterFace could be objects??? i dunno... bur you defenitly MUST get n instanable object, sooo....
     {
         public string Name { get; set; }
 
@@ -36,8 +36,6 @@ namespace CollectionJsonExtended.Core
     {
         public IEnumerable<DataRepresentation> Data { get; set; }
 
-        //[JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
-        //TODO: this should be called instance, or typename.... and abstracts could be objects??? i dunno...
-        public string Concrete { get; set; }
+        public string Type { get; set; }
     }
 }

@@ -106,10 +106,10 @@ namespace CollectionJsonExtended.Core.Extensions
                         continue;
 
                     Type instanceType;
-                    if (!propertyType.TryGetInstanceType(dataObject.Abstract.Concrete, out instanceType))
+                    if (!propertyType.TryGetInstanceType(dataObject.Abstract.Type, out instanceType))
                         throw new TypeLoadException(string.Format(
                             "Type {0} is not a valid instance type for abstract type {1}.",
-                            dataObject.Abstract.Concrete,
+                            dataObject.Abstract.Type,
                             propertyType.Name));
 
                     var abstractData = dataObject.Abstract.Data as IList<DataRepresentation>;
@@ -213,12 +213,12 @@ namespace CollectionJsonExtended.Core.Extensions
             var dataObjectsList = new List<object>();
             foreach (var dataObject in dataRepresentation.Abstracts)
             {
-                if (dataObject.Concrete == null)
+                if (dataObject.Type == null)
                     throw new InvalidDataException(string.Format(
                         "No concrete type specified for abstract type {0}", abstractType.Name));
                 
                 var instanceType = instanceTypes
-                    .SingleOrDefault(t => String.Equals(t.Name, dataObject.Concrete, StringComparison.CurrentCultureIgnoreCase));
+                    .SingleOrDefault(t => String.Equals(t.Name, dataObject.Type, StringComparison.CurrentCultureIgnoreCase));
                 
                 if (instanceType == null)
                     throw new InvalidDataException(string.Format(

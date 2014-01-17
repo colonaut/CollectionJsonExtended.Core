@@ -231,17 +231,17 @@ namespace CollectionJsonExtended.Core
         private void WriteRepresentationAbstract(JsonWriter writer, Type abstractType, IEnumerable<Type> subTypes,
                                 JsonSerializer serializer)
         {
-            writer.WritePropertyName("abstract");
+            writer.WritePropertyName("abstract"); //TODO -> object
             //serializer.Serialize(writer, EmptyObject);
             writer.WriteNull();
-            writer.WritePropertyName("concretes");
+            writer.WritePropertyName("concretes"); //TODO -> data-choice
             writer.WriteStartArray();
             foreach (var subType in subTypes)
             {
                 if (!subType.IsSubclassOf(abstractType))
                     continue;
                 writer.WriteStartObject();
-                writer.WritePropertyName("concrete");
+                writer.WritePropertyName("type");
                 serializer.Serialize(writer, subType.Name);
                 writer.WritePropertyName("data");
                 WriteDataRepresentation(writer, subType, serializer);
@@ -284,16 +284,16 @@ namespace CollectionJsonExtended.Core
         private void WriteRepresentationAbstracts(JsonWriter writer, Type abstractType, IEnumerable<Type> subTypes,
                                 JsonSerializer serializer)
         {
-            writer.WritePropertyName("abstracts");
+            writer.WritePropertyName("abstracts"); //TODO -> objects
             serializer.Serialize(writer, EmptyObjects);
-            writer.WritePropertyName("concretes");
+            writer.WritePropertyName("concretes"); //TODO -> data-choice
             writer.WriteStartArray();
             foreach (var subType in subTypes)
             {
                 if (!subType.IsSubclassOf(abstractType))
                     continue;
                 writer.WriteStartObject();
-                writer.WritePropertyName("concrete");
+                writer.WritePropertyName("type");
                 serializer.Serialize(writer, subType.Name);
                 writer.WritePropertyName("data");
                 WriteDataRepresentation(writer, subType, serializer);

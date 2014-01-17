@@ -7,7 +7,7 @@ What is this about?
 
 Current Limitations:
 --------------------
-- Instance types of abstracts and interfaces for any level of entity's property must be in the same assembly as their parent, otherwise they are not found and will not appear in templat's list of possible data objects to fill.
+°	Instance types of abstracts and interfaces for any level of entity's property must be in the same assembly as their parent, otherwise they are not found and will not appear in templat's list of possible data objects to fill. Also, abstract/interface nesting on multiple levels is not supported (only directly derived instancable classes are found)
 
 
 Extensions on Amundsen's collection+json Specification
