@@ -13,9 +13,6 @@ namespace CollectionJsonExtended.Core
         [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
         public IEnumerable<object> Values { get; set; }
 
-        //[JsonProperty(NullValueHandling = NullValueHandling.Ignore)] //this is the old way.
-        //public IEnumerable<DataRepresentation> Object { get; set; }
-
         [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
         public DataObject Object { get; set; }
 
@@ -33,21 +30,6 @@ namespace CollectionJsonExtended.Core
 
         [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
         public IList<DataObject> Interfaces { get; set; }
-
-        //[JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
-        //public object Data { get; set; }
-
-        //[JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
-        //public string Concretes { get; set; }
-
-        //[JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
-        //public string Prompt { get; set; }
-
-        //public string Type { get; set; }
-
-        //[JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
-        //public Array Options { get; set; }
-
     }
 
     public class DataObject

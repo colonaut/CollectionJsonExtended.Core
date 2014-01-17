@@ -1,0 +1,18 @@
+﻿/*****************************
+* CollectionJsonExtended.Core
+**************************MK*/
+      
+What is this about?
+
+
+Current Limitations:
+--------------------
+- Instance types of abstracts and interfaces for any level of entity's property must be in the same assembly as their parent, otherwise they are not found and will not appear in templat's list of possible data objects to fill.
+
+
+Extensions on Amundsen's collection+json Specification
+------------------------------------------------------
+
+
+Differences to Amundssen's collection+json Specification
+--------------------------------------------------------
