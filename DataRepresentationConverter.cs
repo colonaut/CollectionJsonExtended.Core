@@ -231,10 +231,10 @@ namespace CollectionJsonExtended.Core
         private void WriteRepresentationAbstract(JsonWriter writer, Type abstractType, IEnumerable<Type> subTypes,
                                 JsonSerializer serializer)
         {
-            writer.WritePropertyName("abstract"); //TODO -> object
+            writer.WritePropertyName("object");
             //serializer.Serialize(writer, EmptyObject);
             writer.WriteNull();
-            writer.WritePropertyName("concretes"); //TODO -> data-choice
+            writer.WritePropertyName("select");
             writer.WriteStartArray();
             foreach (var subType in subTypes)
             {
@@ -253,10 +253,10 @@ namespace CollectionJsonExtended.Core
         private void WriteRepresentationInterface(JsonWriter writer, Type interfaceType, IEnumerable<Type> concreteTypes,
                                JsonSerializer serializer)
         {
-            writer.WritePropertyName("interface");
+            writer.WritePropertyName("object");
             //serializer.Serialize(writer, EmptyObject);
             writer.WriteNull();
-            writer.WritePropertyName("concrete");
+            writer.WritePropertyName("select");
             writer.WriteStartArray();
             foreach (var concreteType in concreteTypes)
             {
@@ -284,9 +284,9 @@ namespace CollectionJsonExtended.Core
         private void WriteRepresentationAbstracts(JsonWriter writer, Type abstractType, IEnumerable<Type> subTypes,
                                 JsonSerializer serializer)
         {
-            writer.WritePropertyName("abstracts"); //TODO -> objects
+            writer.WritePropertyName("objects");
             serializer.Serialize(writer, EmptyObjects);
-            writer.WritePropertyName("concretes"); //TODO -> data-choice
+            writer.WritePropertyName("select");
             writer.WriteStartArray();
             foreach (var subType in subTypes)
             {
@@ -341,7 +341,6 @@ namespace CollectionJsonExtended.Core
        
 
         //DEPRECEATED (read json throws not implemented)
-
 
         public override object ReadJson(JsonReader reader, Type objectType, object existingValue, JsonSerializer serializer)
         {

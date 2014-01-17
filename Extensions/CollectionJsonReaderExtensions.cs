@@ -11,22 +11,30 @@ namespace CollectionJsonExtended.Core.Extensions
     internal static class CollectionJsonReaderExtensions
     {
         //TODO: dictionaries (before IEnumerable, as they implement it)
+
+        private static readonly MethodInfo EnumarableCastMethod =
+            typeof (Enumerable).GetMethod("Cast",
+                BindingFlags.Public | BindingFlags.Static);
+
+        private static readonly MethodInfo EnumerableToArrayMethod =
+            typeof (Enumerable).GetMethod("ToArray",
+                BindingFlags.Public | BindingFlags.Static);
+
+        private static readonly MethodInfo EnumerableToListMethod =
+            typeof (Enumerable).GetMethod("ToList",
+                BindingFlags.Public | BindingFlags.Static);
         
-        static readonly MethodInfo EnumarableCastMethod = typeof(Enumerable).GetMethod("Cast",
-                                                                                       BindingFlags.Public | BindingFlags.Static);
-        static readonly MethodInfo EnumerableToArrayMethod = typeof(Enumerable).GetMethod("ToArray",
-                                                                                          BindingFlags.Public | BindingFlags.Static);
-        static readonly MethodInfo EnumerableToListMethod = typeof(Enumerable).GetMethod("ToList",
-                                                                                         BindingFlags.Public | BindingFlags.Static);
-        
-        public static TEntity MapFromData<TEntity>(this ReadTemplateRepresentation<TEntity> readTemplateRepresentation) where TEntity : class, new()
+
+        public static TEntity MapFromData<TEntity>(this ReadTemplateRepresentation<TEntity> readTemplateRepresentation)
+            where TEntity : class, new()
         {
             if (readTemplateRepresentation.Data.Any())
                 return MapFromDataObjects(new TEntity(), readTemplateRepresentation.Data) as TEntity; //if data list is empty, entity should be null (no content was set)
             return null;
         }
 
-        static object MapFromDataObjects(object obj, IList<DataRepresentation> dataObjects)
+        static object MapFromDataObjects(object obj,
+            IList<DataRepresentation> dataObjects)
         {
             foreach (var propertyInfo in obj.GetType().GetProperties())
             {
@@ -102,17 +110,17 @@ namespace CollectionJsonExtended.Core.Extensions
                 #region Map Abstract
                 if (propertyType.IsAbstract)
                 {
-                    if (dataObject.Abstract == null) //object is null, let it be null or default!
+                    if (dataObject.Object == null) //object is null, let it be null or default!
                         continue;
 
                     Type instanceType;
-                    if (!propertyType.TryGetInstanceType(dataObject.Abstract.Type, out instanceType))
+                    if (!propertyType.TryGetInstanceType(dataObject.Object.Type, out instanceType))
                         throw new TypeLoadException(string.Format(
                             "Type {0} is not a valid instance type for abstract type {1}.",
-                            dataObject.Abstract.Type,
+                            dataObject.Object.Type,
                             propertyType.Name));
 
-                    var abstractData = dataObject.Abstract.Data as IList<DataRepresentation>;
+                    var abstractData = dataObject.Object.Data as IList<DataRepresentation>;
                     if (abstractData == null)
                         throw new NullReferenceException(string.Format(
                             "TODO Exception for {0}, {1}",
@@ -159,19 +167,22 @@ namespace CollectionJsonExtended.Core.Extensions
 
 
 
-        static DataRepresentation GetDataObject(this IEnumerable<DataRepresentation> dataObjects, string propertyName)
+        static DataRepresentation GetDataObject(this IEnumerable<DataRepresentation> dataObjects,
+            string propertyName)
         {
             return dataObjects.SingleOrDefault(o => string.Compare(o.Name, propertyName, StringComparison.OrdinalIgnoreCase) == 0);
         }
         
-        static DataRepresentation GetDataObject(this IEnumerable<DataRepresentation> dataObjects, PropertyInfo propertyInfo)
+        static DataRepresentation GetDataObject(this IEnumerable<DataRepresentation> dataObjects,
+            PropertyInfo propertyInfo)
         {
             return dataObjects.SingleOrDefault(o => string.Compare(o.Name, propertyInfo.Name, StringComparison.OrdinalIgnoreCase) == 0);
         }
 
 
         
-        static object ObjectsAsArray(this DataRepresentation dataRepresentation, Type type)
+        static object ObjectsAsArray(this DataRepresentation dataRepresentation,
+            Type type)
         {
             var dataObjectArray = Array.CreateInstance(type, dataRepresentation.Objects.Count);
             for (var i = 0; i < dataRepresentation.Objects.Count; i++)
@@ -182,7 +193,8 @@ namespace CollectionJsonExtended.Core.Extensions
             return dataObjectArray;
         }
         
-        static object ObjectsAsList(this DataRepresentation dataRepresentation, Type type)
+        static object ObjectsAsList(this DataRepresentation dataRepresentation,
+            Type type)
         {
             var dataObjectsList = new List<object>();
             foreach (var dataObject in dataRepresentation.Objects)
@@ -211,7 +223,7 @@ namespace CollectionJsonExtended.Core.Extensions
             IList<Type> instanceTypes)
         {
             var dataObjectsList = new List<object>();
-            foreach (var dataObject in dataRepresentation.Abstracts)
+            foreach (var dataObject in dataRepresentation.Objects)
             {
                 if (dataObject.Type == null)
                     throw new InvalidDataException(string.Format(
@@ -234,12 +246,14 @@ namespace CollectionJsonExtended.Core.Extensions
             return EnumerableToListMethod.MakeGenericMethod(abstractType).Invoke(null, new object[] { castedGenericList });
         }
 
-        static object ValueAsValueType(this DataRepresentation dataRepresentation, Type type)
+        static object ValueAsValueType(this DataRepresentation dataRepresentation,
+            Type type)
         {
             return Convert.ChangeType(dataRepresentation.Value, type, CultureInfo.InvariantCulture);
         }
 
-        static object ValuesAsList(this DataRepresentation dataRepresentation, Type itemType)
+        static object ValuesAsList(this DataRepresentation dataRepresentation,
+            Type itemType)
         {
             if (dataRepresentation.Values == null)
                 throw new NullReferenceException("DataObject.Values is null");
@@ -247,7 +261,8 @@ namespace CollectionJsonExtended.Core.Extensions
             return EnumerableToListMethod.MakeGenericMethod(itemType).Invoke(null, new object[] { castedEnumerable });
         }
 
-        static object ValuesAsArray(this DataRepresentation dataRepresentation, Type itemType)
+        static object ValuesAsArray(this DataRepresentation dataRepresentation,
+            Type itemType)
         {
             if (dataRepresentation.Values == null)
                 throw new NullReferenceException("DataRepresenation.Values is null");

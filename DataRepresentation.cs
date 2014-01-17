@@ -16,20 +16,20 @@ namespace CollectionJsonExtended.Core
         [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
         public DataObject Object { get; set; }
 
-        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
-        public DataObject Abstract { get; set; }
+        //[JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+        //public DataObject Abstract { get; set; }
 
-        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
-        public DataObject Interface { get; set; }
+        //[JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+        //public DataObject Interface { get; set; }
 
         [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
         public IList<DataObject> Objects { get; set; }
 
-        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
-        public IList<DataObject> Abstracts { get; set; }
+        //[JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+        //public IList<DataObject> Abstracts { get; set; }
 
-        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
-        public IList<DataObject> Interfaces { get; set; }
+        //[JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+        //public IList<DataObject> Interfaces { get; set; }
     }
 
     public class DataObject
