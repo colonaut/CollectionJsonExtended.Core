@@ -77,10 +77,12 @@ namespace CollectionJsonExtended.Core.Extensions
                 {
                     var genericType = propertyType.GetGenericArguments()[0];
                     if (genericType == null)
-                        throw new NullReferenceException(string.Format("Could not determine genericType for {0}, {1}", propertyType.Name, propertyName));
+                        throw new NullReferenceException(string.Format(
+                            "Could not determine genericType for {0}, {1}",
+                            propertyType.Name, propertyName));
 
                     var list = genericType.IsAbstract
-                        ? dataObject.AbstractsAsList(genericType, propertyInfo.GetCollectionJsonConcreteTypes())
+                        ? dataObject.AbstractsAsList(genericType, genericType.GetInstanceTypes().ToList())
                                 : !genericType.IsClass || genericType == typeof (string)
                                    ? dataObject.ValuesAsList(genericType)
                                    : dataObject.ObjectsAsList(genericType);
@@ -102,17 +104,29 @@ namespace CollectionJsonExtended.Core.Extensions
                 {
                     if (dataObject.Abstract == null) //object is null, let it be null or default!
                         continue;
-                    var concreteType = propertyInfo.GetCollectionJsonConcreteTypeByName(dataObject.Abstract.Concrete);
-                    if (concreteType == null)
-                        throw new Exception("No concrete Type match for abstract Type {0}. Did you set the CollectionJosonPropertyAttibute correctly?");
+
+                    Type instanceType;
+                    if (!propertyType.TryGetInstanceType(dataObject.Abstract.Concrete, out instanceType))
+                        throw new TypeLoadException(string.Format(
+                            "Type {0} is not a valid instance type for abstract type {1}.",
+                            dataObject.Abstract.Concrete,
+                            propertyType.Name));
 
                     var abstractData = dataObject.Abstract.Data as IList<DataRepresentation>;
                     if (abstractData == null)
-                        throw new NullReferenceException(string.Format("TODO Exception for {0}, {1}", propertyType.Name, propertyName));
+                        throw new NullReferenceException(string.Format(
+                            "TODO Exception for {0}, {1}",
+                            propertyType.Name,
+                            propertyName));
 
-                    if (propertyInfo.TrySetValue(obj, MapFromDataObjects(Activator.CreateInstance(concreteType), abstractData)))
+                    if (propertyInfo.TrySetValue(obj,
+                        MapFromDataObjects(Activator.CreateInstance(instanceType), abstractData)))
                         continue;
-                    throw new InvalidDataException(string.Format("TODO Exception for {0}, {1}", propertyType.Name, propertyName));
+
+                    throw new InvalidDataException(string.Format(
+                        "TODO Exception for {0}, {1}",
+                        propertyType.Name,
+                        propertyName));
                 }
                 #endregion
 
@@ -192,18 +206,28 @@ namespace CollectionJsonExtended.Core.Extensions
             return EnumerableToListMethod.MakeGenericMethod(type).Invoke(null, new object[] { castedGenericList });
         }
 
-        static object AbstractsAsList(this DataRepresentation dataRepresentation, Type abstractType, IList<Type> concreteTypes)
+        static object AbstractsAsList(this DataRepresentation dataRepresentation,
+            Type abstractType,
+            IList<Type> instanceTypes)
         {
             var dataObjectsList = new List<object>();
             foreach (var dataObject in dataRepresentation.Abstracts)
             {
                 if (dataObject.Concrete == null)
-                    throw new InvalidDataException(string.Format("No concrete type specified for abstract type {0}", abstractType.Name));
-                var concreteType = concreteTypes.SingleOrDefault(t => t.Name.ToLower() == dataObject.Concrete.ToLower());
-                if (concreteType == null)
-                    throw new InvalidDataException(string.Format("Could not determine concrete type for abstract ", abstractType.Name));
-                var objectInstance = Activator.CreateInstance(concreteType);
-                var resolvedObjectInstance = MapFromDataObjects(objectInstance, dataObject.Data as IList<DataRepresentation>);
+                    throw new InvalidDataException(string.Format(
+                        "No concrete type specified for abstract type {0}", abstractType.Name));
+                
+                var instanceType = instanceTypes
+                    .SingleOrDefault(t => String.Equals(t.Name, dataObject.Concrete, StringComparison.CurrentCultureIgnoreCase));
+                
+                if (instanceType == null)
+                    throw new InvalidDataException(string.Format(
+                        "Could not determine concrete type for abstract ",
+                        abstractType.Name));
+
+                var objectInstance = Activator.CreateInstance(instanceType);
+                var resolvedObjectInstance = MapFromDataObjects(objectInstance,
+                    dataObject.Data as IList<DataRepresentation>);
                 dataObjectsList.Add(resolvedObjectInstance);
             }
             var castedGenericList = EnumarableCastMethod.MakeGenericMethod(abstractType).Invoke(null, new object[] { dataObjectsList });

@@ -55,6 +55,7 @@ namespace CollectionJsonExtended.Core
         public IEnumerable<DataRepresentation> Data { get; set; }
 
         //[JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+        //TODO: this should be called instance, or typename.... and abstracts could be objects??? i dunno...
         public string Concrete { get; set; }
     }
 }

@@ -98,9 +98,15 @@ namespace CollectionJsonExtended.Core
                 else if (propertyType.IsEnum)
                 {
                     if (propertyInfo.IsJsonStringEnumConverter())
-                        WriteRepresentationValue(writer, Enum.GetName(propertyType, 0), Enum.GetNames(propertyType), serializer);
+                        WriteRepresentationValue(writer,
+                            Enum.GetName(propertyType, 0),
+                            Enum.GetNames(propertyType),
+                            serializer);
                     else
-                        WriteRepresentationValue(writer, Enum.GetValues(propertyType).GetValue(0), Enum.GetValues(propertyType), serializer);
+                        WriteRepresentationValue(writer,
+                            Enum.GetValues(propertyType).GetValue(0),
+                            Enum.GetValues(propertyType),
+                            serializer);
                 }
                 #endregion
 
@@ -108,13 +114,18 @@ namespace CollectionJsonExtended.Core
                 else if (propertyType.IsArray)
                 {
                     var elementType = propertyType.GetElementType();
+
                     if (elementType.IsAbstract)
-                        throw new Exception("Specs and validate handling for Abstract[]");
+                        throw new NotImplementedException("Specs and validate handling for Abstract[]");
                         //WriteRepresentationAbstracts(writer, elementType, jsonAbstractPropertyAttributes.Select(a => a.Type), serializer);
+                    
                     else if (elementType.IsInterface)
-                        throw new Exception("Implement Handling for Interface[]");
+                        throw new NotImplementedException("Handling for Interface[]");
+                    
                     else if (elementType.IsClass && elementType != typeof (string))
-                        WriteRepresentationObjects(writer, elementType, serializer);
+                        WriteRepresentationObjects(writer,
+                            elementType,
+                            serializer);
                     else
                         WriteRepresentationValues(writer, EmptyObjects, serializer);
                 }
@@ -127,36 +138,56 @@ namespace CollectionJsonExtended.Core
                     if (genericType != null)
                     {
                         resolvedType = string.Format("{0}[{1}]", resolvedType, genericType.Name);
+                        
                         if (genericType.IsAbstract)
-                            WriteRepresentationAbstracts(writer, genericType, propertyInfo.GetCollectionJsonConcreteTypes(), serializer);
+                            WriteRepresentationAbstracts(writer,
+                                genericType,
+                                genericType.GetInstanceTypes(),
+                                serializer);
+
                         else if (genericType.IsInterface)
                             throw new Exception("Implement Handling for IEnumerable<Interface>");
+
                         else if (genericType.IsClass && genericType != typeof (string))
-                            WriteRepresentationObjects(writer, genericType, serializer);
+                            WriteRepresentationObjects(writer,
+                                genericType,
+                                serializer);
                         else
-                            WriteRepresentationValues(writer, EmptyObjects, serializer);
+                            WriteRepresentationValues(writer,
+                                EmptyObjects,
+                                serializer);
                     }
                 }
                 #endregion
 
                 else if (propertyType.IsAbstract)
-                    WriteRepresentationAbstract(writer, propertyType, propertyInfo.GetCollectionJsonConcreteTypes(), serializer);
+                    WriteRepresentationAbstract(writer,
+                        propertyType,
+                        propertyType.GetInstanceTypes(),
+                        serializer);
                 
                 else if (propertyType.IsClass)
-                    WriteRepresentationObject(writer, propertyType, serializer);
+                    WriteRepresentationObject(writer,
+                        propertyType,
+                        serializer);
 
                 else if (propertyType.IsValueType)
-                    WriteRepresentationValue(writer, propertyInfo.GetDefaultValue(), serializer);
-                    
+                    WriteRepresentationValue(writer,
+                        propertyInfo.GetDefaultValue(),
+                        serializer);
+
                 else
-                    throw new NotImplementedException(string.Format("Handling for Type {0} is not yet supported",
-                                                                    propertyType.Name));
+                    throw new NotImplementedException(string.Format(
+                        "Handling for Type {0} is not yet supported",
+                        propertyType.Name));
 
                 writer.WritePropertyName("prompt");
-                serializer.Serialize(writer, propertyInfo.GetCollectionJsonPrompt());
+                serializer.Serialize(writer,
+                    propertyInfo.GetCollectionJsonPrompt());
 
                 writer.WritePropertyName("type");
-                serializer.Serialize(writer, resolvedType);
+                serializer.Serialize(writer,
+                    resolvedType);
 
                 writer.WriteEndObject();
             }

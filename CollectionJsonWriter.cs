@@ -275,15 +275,8 @@ namespace CollectionJsonExtended.Core
         [JsonConverter(typeof(StringEnumConverter))]
         public RenderType Render { get; set; }
 
-        ////TODO!!!
-        ////DEPR, done in client??? as string!!!
-        //public enum RelationType
-        //{
-        //    rss,
-        //    feed
-        //}
 
-        //TODO!!!
+        //TODO RenderType vs RenderType in client.. and this should be string?
         //DEPR, done in client??? or use this... adapt specs
         public enum RenderType
         {

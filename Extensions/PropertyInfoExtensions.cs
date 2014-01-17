@@ -10,6 +10,7 @@ namespace CollectionJsonExtended.Core.Extensions
 {
     internal static class PropertyInfoExtensions
     {
+        
         internal static bool TrySetValue(this PropertyInfo propertyInfo, object obj, object value)
         {
             try
@@ -28,23 +29,6 @@ namespace CollectionJsonExtended.Core.Extensions
             var propertyType = propertyInfo.PropertyType;
             var isNullableType = Nullable.GetUnderlyingType(propertyType) != null;
             return isNullableType ? null : Activator.CreateInstance(propertyType);
-        }
-
-        internal static IList<Type> GetCollectionJsonConcreteTypes(this PropertyInfo propertyInfo)
-        {
-            var propertyType = propertyInfo.PropertyType;
-            if (!propertyType.IsAbstract && !propertyType.IsInterface)
-                return new List<Type> {propertyType};
-            return propertyInfo.GetCustomAttributes<CollectionJsonConcreteTypeAttribute>(false)
-                               .Select(a => a.Type)
-                               .OrderBy(t => t.Name)
-                               .ToList();
-        }
-
-        internal static Type GetCollectionJsonConcreteTypeByName(this PropertyInfo propertyInfo, string destinationTypeName)
-        {
-            return propertyInfo.GetCollectionJsonConcreteTypes()
-                            .SingleOrDefault(t => t.Name.ToLowerInvariant() == destinationTypeName.ToLowerInvariant());
         }
 
         internal static string GetCollectionJsonPrompt(this PropertyInfo propertyInfo)
