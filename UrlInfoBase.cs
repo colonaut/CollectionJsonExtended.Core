@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Reflection;
 
 namespace CollectionJsonExtended.Core
@@ -23,6 +24,8 @@ namespace CollectionJsonExtended.Core
         public string VirtualPath { get; set; }
         public string PrimaryKeyTemplate { get; set; }
         public PropertyInfo PrimaryKeyProperty { get; set; }
+
+        public ParameterInfo[] QueryParams { get; set; } 
 
         bool _isPublished;
         public virtual void Publish()

@@ -55,7 +55,9 @@
     <Compile Include="Extensions\PropertyInfoExtensions.cs" />
     <Compile Include="Extensions\StringExtensions.cs" />
     <Compile Include="Extensions\TypeExtensions.cs" />
+    <Compile Include="ItemRepresentation.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="QueryRepresentation.cs" />
     <Compile Include="SingletonFactory.cs" />
     <Compile Include="UrlInfoBase.cs" />
     <Compile Include="UrlInfoCollection.cs" />
