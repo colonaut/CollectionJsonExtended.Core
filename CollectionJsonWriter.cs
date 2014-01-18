@@ -1,12 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.ComponentModel;
 using System.Linq;
 using System.Net;
-using CollectionJsonExtended.Core.Extensions;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
-using Newtonsoft.Json.Serialization;
 
 namespace CollectionJsonExtended.Core
 {
@@ -118,33 +115,29 @@ namespace CollectionJsonExtended.Core
     {
         /* Private fields */
         string _version = "1.0";
-        readonly IEnumerable<UrlInfoBase> _urlInfoCollection;
 
         /* Ctor */
-        CollectionRepresentation()
+        CollectionRepresentation(CollectionJsonSerializerSettings settings)
         {
-            _urlInfoCollection = SingletonFactory<UrlInfoCollection>.Instance
-                .Find(typeof (TEntity));
+            Settings = settings;            
         }
         
         public CollectionRepresentation(TEntity entity,
-            CollectionJsonSerializerSettings settings) : this()
+            CollectionJsonSerializerSettings settings) : this(settings)
         {
-            Settings = settings;
+           
 
             Items = new List<ItemRepresentation<TEntity>>
                     {
-                        new ItemRepresentation<TEntity>(entity, _urlInfoCollection, settings)
+                        new ItemRepresentation<TEntity>(entity, settings)
                     };
         }
 
         public CollectionRepresentation(IEnumerable<TEntity> entities,
-            CollectionJsonSerializerSettings settings) : this()
+            CollectionJsonSerializerSettings settings) : this(settings)
         {
-            Settings = settings;
-
             Items = new List<ItemRepresentation<TEntity>>(entities.Select(entity =>
-                new ItemRepresentation<TEntity>(entity, _urlInfoCollection, settings)));
+                new ItemRepresentation<TEntity>(entity, settings)));
             
             Template = new WriteTemplateRepresentation<TEntity>(settings);
             
@@ -214,7 +207,8 @@ namespace CollectionJsonExtended.Core
 
         //TODO: we might not have to care about the settings here. we might remove the passing of the settings to here, once this descision is settled
         //a template should always represent the complex data structure, as this only can transport prompts and what so ever.
-        //if ettings are on entity, the clint must convert the template to an read template, which can then be read on entity base
+        //if settings are on entity, the client must convert the template to an read template, which can then be read on entity base
+        //but that is not neccessary! we would just send the template.. so we probably will have only one template, not a read and write one;
         
         [JsonConverter(typeof(StringEnumConverter))] //we might not need that...
         public ConversionMethod ConversionMethod;

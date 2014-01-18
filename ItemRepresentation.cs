@@ -1,35 +1,21 @@
-using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Security.Policy;
-using CollectionJsonExtended.Core.Extensions;
 using Newtonsoft.Json;
 
 namespace CollectionJsonExtended.Core
 {
     public sealed class ItemRepresentation<TEntity> : IRepresentation<TEntity> where TEntity : class, new()
     {
-        readonly CollectionJsonSerializerSettings _settings;
-        readonly IEnumerable<UrlInfoBase> _urlInfoCollection;
         TEntity _entity;
         
         /* Ctor */
-        ItemRepresentation(TEntity entity,
-            IEnumerable<UrlInfoBase> urlInfoCollection)
+        public ItemRepresentation(TEntity entity,
+            CollectionJsonSerializerSettings settings)
         {
             _entity = entity;
-            _urlInfoCollection = urlInfoCollection;
+            Settings = settings;
         }
 
-        public ItemRepresentation(TEntity entity,
-            IEnumerable<UrlInfoBase> urlInfoCollection,
-            CollectionJsonSerializerSettings settings)
-            : this(entity, urlInfoCollection)
-        {
-            _settings = settings;
-        }
 
-        
         /*public properties*/
         public string Href
         {
@@ -45,7 +31,7 @@ namespace CollectionJsonExtended.Core
         [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
         public TEntity Entity
         {
-            get { return _settings.ConversionMethod == ConversionMethod.Entity ? _entity : null; }
+            get { return Settings.ConversionMethod == ConversionMethod.Entity ? _entity : null; }
             set { _entity = value; }
         }
 
@@ -53,10 +39,11 @@ namespace CollectionJsonExtended.Core
         [JsonConverter(typeof (DataRepresentationConverter))]
         public object Data
         {
-            get { return _settings.ConversionMethod == ConversionMethod.Data ? _entity : null; }
+            get { return Settings.ConversionMethod == ConversionMethod.Data ? _entity : null; }
         }
 
-        public CollectionJsonSerializerSettings Settings { get { return _settings; } }
+        public CollectionJsonSerializerSettings Settings { get; private set; }
+
 
         /*private static methods*/
         static string GetParsedVirtualPath(TEntity entity)
