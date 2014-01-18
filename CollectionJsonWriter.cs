@@ -139,34 +139,44 @@ namespace CollectionJsonExtended.Core
     {
         /* Private fields */
         string _version = "1.0";
-        
+        readonly IEnumerable<UrlInfoBase> _urlInfoCollection;
+
         /* Ctor */
-        public CollectionRepresentation(CollectionJsonSerializerSettings settings) //collection representing a template //TODO: settings transportation
+        CollectionRepresentation()
+        {
+            _urlInfoCollection = SingletonFactory<UrlInfoCollection>.Instance
+                .Find(typeof (TEntity));
+        }
+        
+        public CollectionRepresentation(CollectionJsonSerializerSettings settings) : this() //collection representing a template //TODO: settings transportation
         {
             Template = new WriteTemplateRepresentation<TEntity>(settings);
             Links = new List<LinkRepresentation>();
         }
 
         public CollectionRepresentation(TEntity entity,
-            CollectionJsonSerializerSettings settings)
+            CollectionJsonSerializerSettings settings) : this()
         {
             Items = new List<ItemRepresentation<TEntity>>
                     {
-                        new ItemRepresentation<TEntity>(entity, settings)
+                        new ItemRepresentation<TEntity>(entity, _urlInfoCollection, settings)
                     };
         }
 
         public CollectionRepresentation(IEnumerable<TEntity> entities,
-            CollectionJsonSerializerSettings settings)
+            CollectionJsonSerializerSettings settings) : this()
         {
+            
             Items = new List<ItemRepresentation<TEntity>>(entities.Select(entity =>
-                new ItemRepresentation<TEntity>(entity, settings)));
+                new ItemRepresentation<TEntity>(entity, _urlInfoCollection, settings)));
             
             Template = new WriteTemplateRepresentation<TEntity>(settings);
             
             Links = new List<LinkRepresentation>();
             
-            Queries = new List<QueryRepresentation>();
+            Queries = _urlInfoCollection.Where(ui => ui.Kind == Is.Query)
+                .Select(ui => new QueryRepresentation(ui))
+                .ToList();
         }
 
 
@@ -179,7 +189,13 @@ namespace CollectionJsonExtended.Core
 
         public string Href
         {
-            get { return this.ParseVirtualPath(); }
+            get
+            {
+                var baseUrlInfo = _urlInfoCollection.SingleOrDefault(ui => ui.Kind == Is.Base);
+                if (baseUrlInfo != null)
+                    return baseUrlInfo.VirtualPath;
+                throw new Exception("must be single..."); //TODO exception
+            }
         }
 
         [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
@@ -194,41 +210,6 @@ namespace CollectionJsonExtended.Core
         [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
         public WriteTemplateRepresentation<TEntity> Template { get; set; }
    }
-
-
-    public sealed class ItemRepresentation<TEntity> : IRepresentation<TEntity> where TEntity : class, new()
-    {
-        readonly CollectionJsonSerializerSettings _settings;
-        TEntity _entity;
-        
-        public ItemRepresentation(TEntity entity,
-            CollectionJsonSerializerSettings settings)
-        {
-            _entity = entity;
-            _settings = settings;
-        }
-
-       
-        public string Href
-        {
-            get { return this.ParseVirtualPath(_entity); }
-        }
-
-        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
-        public IEnumerable<LinkRepresentation> Links { get; set; }
-
-        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
-        public TEntity Entity
-        {
-            get { return _settings.ConversionMethod == ConversionMethod.Entity ? _entity : null; }
-            set { _entity = value; }
-        }
-
-        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
-        [JsonConverter(typeof (DataRepresentationConverter))]
-        public object Data { get { return _settings.ConversionMethod == ConversionMethod.Data ? _entity : null; } }
-
-    }
 
 
     public sealed class WriteTemplateRepresentation<TEntity> : IRepresentation<TEntity> where TEntity : class, new()
@@ -252,11 +233,6 @@ namespace CollectionJsonExtended.Core
         }
 
         //public IEnumerable<DataObject> Data { get { return this.MapFromEntityType(_propertyFormatter); } } 
-    }
-
-
-    public sealed class QueryRepresentation : IRepresentation
-    {
     }
 
 
