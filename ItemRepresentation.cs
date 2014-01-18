@@ -1,4 +1,6 @@
+using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Security.Policy;
 using CollectionJsonExtended.Core.Extensions;
 using Newtonsoft.Json;
@@ -27,10 +29,14 @@ namespace CollectionJsonExtended.Core
             _settings = settings;
         }
 
-       
+        
+        /*public properties*/
         public string Href
         {
-            get { return this.GetParsedVirtualPath(_entity);}
+            get
+            {
+                return GetParsedVirtualPath(_entity);
+            }
         }
 
         [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
@@ -45,7 +51,26 @@ namespace CollectionJsonExtended.Core
 
         [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
         [JsonConverter(typeof (DataRepresentationConverter))]
-        public object Data { get { return _settings.ConversionMethod == ConversionMethod.Data ? _entity : null; } }
+        public object Data
+        {
+            get { return _settings.ConversionMethod == ConversionMethod.Data ? _entity : null; }
+        }
 
+        public CollectionJsonSerializerSettings Settings { get { return _settings; } }
+
+        /*private static methods*/
+        static string GetParsedVirtualPath(TEntity entity)
+        {
+            //TODO: how to deal with renderType (TryFindSingle for i.e. Is.Item crashes, when we have another Is.Item that is for another renderType...)
+            //MayBe add another method?
+            UrlInfoBase urlInfo;
+            if (!SingletonFactory<UrlInfoCollection>.Instance
+                .TryFindSingle(typeof (TEntity), Is.Item, out urlInfo))
+                return null;
+
+            var primaryKey = urlInfo.PrimaryKeyProperty.GetValue(entity).ToString();
+            var virtualPath = urlInfo.VirtualPath.Replace(urlInfo.PrimaryKeyTemplate, primaryKey);
+            return virtualPath;
+        }
     }
 }

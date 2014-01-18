@@ -17,9 +17,10 @@ namespace CollectionJsonExtended.Core
         
     }
 
-    public interface IRepresentation<TEntity> : IRepresentation where TEntity : class, new()
+    public interface IRepresentation<TEntity> where TEntity : class, new()
     {
-
+        [JsonIgnore]
+        CollectionJsonSerializerSettings Settings { get; }
     }
 
     public enum As
@@ -42,6 +43,7 @@ namespace CollectionJsonExtended.Core
     {
         //why is all the following defined in an absrtract? http://stackoverflow.com/a/9665168
         static protected readonly CollectionJsonSerializerSettings DefaultSerializerSettings;
+        
         static CollectionJsonWriter() //this will be envoked at first usage and create the DefaultSettings
         {
             DefaultSerializerSettings = new CollectionJsonSerializerSettings
@@ -49,42 +51,13 @@ namespace CollectionJsonExtended.Core
                 DataPropertyCasing = DataPropertyCasing.CamelCase,
                 ConversionMethod = ConversionMethod.Entity
             };
-        }
-
-        /*Ctor*/
-        public static string Serialize(IRepresentation representation)
-        {
-            return SerializeObject(representation);
-        }
-        public static string Serialize(IRepresentation representation, CollectionJsonSerializerSettings settings)
-        {
-            return SerializeObject(representation, settings);
-        }
-
-        public static string Serialize(IEnumerable<IRepresentation> representations)
-        {
-            return SerializeObject(representations);
-        }
-        public static string Serialize(IEnumerable<IRepresentation> representations, CollectionJsonSerializerSettings settings)
-        {
-            return SerializeObject(representations, settings);
-        }
-
-        static protected string SerializeObject(object representation, CollectionJsonSerializerSettings settings = null)
-        {
-            settings = settings ?? new CollectionJsonSerializerSettings{ConversionMethod = ConversionMethod.Data};
-
-            var jsonSerializerSettings = new JsonSerializerSettings();
-            if (settings.DataPropertyCasing == DataPropertyCasing.CamelCase)
-                jsonSerializerSettings.ContractResolver = new CamelCasePropertyNamesContractResolver(); //BUT: camel casing is done globally in mvc project    
-
-            return JsonConvert.SerializeObject(representation, settings.Formatting, jsonSerializerSettings);
-        }
+        }        
     }
 
-    public sealed class CollectionJsonWriter<TEntity> : CollectionJsonWriter, IRepresentation<TEntity> where TEntity : class, new()
+    public sealed class CollectionJsonWriter<TEntity> : CollectionJsonWriter, IRepresentation<TEntity>
+        where TEntity : class, new()
     {
-        readonly CollectionJsonSerializerSettings _settings = DefaultSerializerSettings;
+        readonly CollectionJsonSerializerSettings _settings;
         
         /* Ctor */
         public CollectionJsonWriter(HttpStatusCode httpStatusCode,
@@ -97,9 +70,7 @@ namespace CollectionJsonExtended.Core
         }
 
         public CollectionJsonWriter(TEntity entity,
-            //IEnumerable<UrlInfo> urlInfoCollection,
-            CollectionJsonSerializerSettings settings = null,
-            As writer = As.Collection)
+            CollectionJsonSerializerSettings settings = null)
         {
             if (settings != null)
                 _settings = settings;
@@ -107,7 +78,6 @@ namespace CollectionJsonExtended.Core
         }
 
         public CollectionJsonWriter(IEnumerable<TEntity> entities,
-            //IEnumerable<UrlInfo> urlInfoCollection,
             CollectionJsonSerializerSettings settings = null)
         {
             if (settings != null)
@@ -123,19 +93,28 @@ namespace CollectionJsonExtended.Core
         [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
         public ErrorRepresentation Error { get; set; }
 
-
-        /* Methods */
-        public string Serialize()
+        public CollectionJsonSerializerSettings Settings
         {
-            return SerializeObject(this, _settings);
+            get
+            {
+                return _settings ?? DefaultSerializerSettings;                
+            }
         }
 
+
+        /* Methods */
+        //public string Serialize()
+        //{
+        //    return this.Serialize(Settings);
+        //}
     }
+
 
     /*****************
      * Representations
      *****************/
-    public sealed class CollectionRepresentation<TEntity> : IRepresentation<TEntity> where TEntity : class, new()
+    public sealed class CollectionRepresentation<TEntity> : IRepresentation<TEntity>
+        where TEntity : class, new()
     {
         /* Private fields */
         string _version = "1.0";
@@ -148,15 +127,11 @@ namespace CollectionJsonExtended.Core
                 .Find(typeof (TEntity));
         }
         
-        public CollectionRepresentation(CollectionJsonSerializerSettings settings) : this() //collection representing a template //TODO: settings transportation
-        {
-            Template = new WriteTemplateRepresentation<TEntity>(settings);
-            Links = new List<LinkRepresentation>();
-        }
-
         public CollectionRepresentation(TEntity entity,
             CollectionJsonSerializerSettings settings) : this()
         {
+            Settings = settings;
+
             Items = new List<ItemRepresentation<TEntity>>
                     {
                         new ItemRepresentation<TEntity>(entity, _urlInfoCollection, settings)
@@ -166,17 +141,16 @@ namespace CollectionJsonExtended.Core
         public CollectionRepresentation(IEnumerable<TEntity> entities,
             CollectionJsonSerializerSettings settings) : this()
         {
-            
+            Settings = settings;
+
             Items = new List<ItemRepresentation<TEntity>>(entities.Select(entity =>
                 new ItemRepresentation<TEntity>(entity, _urlInfoCollection, settings)));
             
             Template = new WriteTemplateRepresentation<TEntity>(settings);
             
             Links = new List<LinkRepresentation>();
-            
-            Queries = _urlInfoCollection.Where(ui => ui.Kind == Is.Query)
-                .Select(ui => new QueryRepresentation(ui))
-                .ToList();
+
+            Queries = GetQueryRepresentations();
         }
 
 
@@ -189,13 +163,7 @@ namespace CollectionJsonExtended.Core
 
         public string Href
         {
-            get
-            {
-                var baseUrlInfo = _urlInfoCollection.SingleOrDefault(ui => ui.Kind == Is.Base);
-                if (baseUrlInfo != null)
-                    return baseUrlInfo.VirtualPath;
-                throw new Exception("must be single..."); //TODO exception
-            }
+            get { return GetParsedVirtualPath(); }
         }
 
         [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
@@ -209,14 +177,38 @@ namespace CollectionJsonExtended.Core
 
         [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
         public WriteTemplateRepresentation<TEntity> Template { get; set; }
-   }
+
+        public CollectionJsonSerializerSettings Settings { get; private set; }
 
 
-    public sealed class WriteTemplateRepresentation<TEntity> : IRepresentation<TEntity> where TEntity : class, new()
+        /*private static methods*/
+        static string GetParsedVirtualPath()
+        {
+            UrlInfoBase urlInfo;
+            if (!SingletonFactory<UrlInfoCollection>.Instance
+                .TryFindSingle(typeof(TEntity), Is.Base, out urlInfo))
+                throw new Exception("must be single..."); //TODO exception
+            return urlInfo.VirtualPath;
+        }
+
+        static IList<QueryRepresentation> GetQueryRepresentations()
+        {
+            var queries = SingletonFactory<UrlInfoCollection>.Instance
+                .Find(typeof (TEntity), Is.Query)
+                .Select(ui => new QueryRepresentation(ui)).ToList();
+            if (queries.Any())
+                return queries;
+            return null;
+        }
+    }
+
+
+    public sealed class WriteTemplateRepresentation<TEntity> : IRepresentation<TEntity>
+        where TEntity : class, new()
     {
-       
         public WriteTemplateRepresentation(CollectionJsonSerializerSettings settings)
         {
+            Settings = settings;
             ConversionMethod = settings.ConversionMethod;
         }
 
@@ -232,7 +224,7 @@ namespace CollectionJsonExtended.Core
             get { return typeof(TEntity); }
         }
 
-        //public IEnumerable<DataObject> Data { get { return this.MapFromEntityType(_propertyFormatter); } } 
+        public CollectionJsonSerializerSettings Settings { get; private set; }
     }
 
 

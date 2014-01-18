@@ -15,8 +15,11 @@ namespace CollectionJsonExtended.Core
             _urlInfo = urlInfo;
         }
         
+        /*properties*/
         public string Href { get { return _urlInfo.VirtualPath; } }
+        
         public string Rel { get { return _urlInfo.Relation; } }
+        
         public string Prompt { get; set; } //TODO: prompt... how?
 
         public IEnumerable<QueryParam> Data
