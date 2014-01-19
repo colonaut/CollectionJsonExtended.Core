@@ -47,11 +47,12 @@
     <Compile Include="CollectionJsonReader.cs" />
     <Compile Include="CollectionJsonSerializerSettings.cs" />
     <Compile Include="CollectionJsonWriter.cs" />
+    <Compile Include="CollectionRepresentation.cs" />
     <Compile Include="DataRepresentation.cs" />
     <Compile Include="DataRepresentationConverter.cs" />
     <Compile Include="ErrorRepresentation.cs" />
     <Compile Include="Extensions\CollectionJsonReaderExtensions.cs" />
-    <Compile Include="Extensions\CollectionJsonWriterExtensions.cs" />
+    <Compile Include="CollectionJsonWriterExtensions.cs" />
     <Compile Include="Extensions\PropertyInfoExtensions.cs" />
     <Compile Include="Extensions\StringExtensions.cs" />
     <Compile Include="Extensions\TypeExtensions.cs" />

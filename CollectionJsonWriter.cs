@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Net;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
@@ -39,7 +38,7 @@ namespace CollectionJsonExtended.Core
     public abstract class CollectionJsonWriter
     {
         //why is all the following defined in an absrtract? http://stackoverflow.com/a/9665168
-        static protected readonly CollectionJsonSerializerSettings DefaultSerializerSettings;
+        static readonly CollectionJsonSerializerSettings DefaultSerializerSettings;
         
         static CollectionJsonWriter() //this will be envoked at first usage and create the DefaultSettings
         {
@@ -48,14 +47,26 @@ namespace CollectionJsonExtended.Core
                 DataPropertyCasing = DataPropertyCasing.CamelCase,
                 ConversionMethod = ConversionMethod.Entity
             };
-        }        
+        }
+
+        protected CollectionJsonWriter()
+        {
+            Settings = DefaultSerializerSettings;
+        }
+        
+        protected CollectionJsonWriter(CollectionJsonSerializerSettings settings)
+        {
+            Settings = settings ?? DefaultSerializerSettings;
+        }
+
+
+        [JsonIgnore]
+        public CollectionJsonSerializerSettings Settings { get; private set; }
     }
 
     public sealed class CollectionJsonWriter<TEntity> : CollectionJsonWriter, IRepresentation<TEntity>
         where TEntity : class, new()
     {
-        readonly CollectionJsonSerializerSettings _settings;
-        
         /* Ctor */
         public CollectionJsonWriter(HttpStatusCode httpStatusCode,
             string message = null)
@@ -67,133 +78,30 @@ namespace CollectionJsonExtended.Core
         }
 
         public CollectionJsonWriter(TEntity entity,
-            CollectionJsonSerializerSettings settings = null)
+            CollectionJsonSerializerSettings settings = null): base(settings)
         {
-            if (settings != null)
-                _settings = settings;
-            Collection = new CollectionRepresentation<TEntity>(entity, _settings);
+            Collection = new CollectionRepresentation<TEntity>(entity, Settings);
         }
 
         public CollectionJsonWriter(IEnumerable<TEntity> entities,
-            CollectionJsonSerializerSettings settings = null)
+            CollectionJsonSerializerSettings settings = null) : base(settings)
         {
-            if (settings != null)
-                _settings = settings;
-            Collection = new CollectionRepresentation<TEntity>(entities, _settings);
+            Collection = new CollectionRepresentation<TEntity>(entities, Settings);
         }
         
 
         /* Properties */
         [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
-        public CollectionRepresentation<TEntity> Collection { get; set; }
+        public CollectionRepresentation<TEntity> Collection { get; private set; }
 
         [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
-        public ErrorRepresentation Error { get; set; }
-
-        public CollectionJsonSerializerSettings Settings
-        {
-            get
-            {
-                return _settings ?? DefaultSerializerSettings;                
-            }
-        }
-
-
-        /* Methods */
-        //public string Serialize()
-        //{
-        //    return this.Serialize(Settings);
-        //}
+        public ErrorRepresentation Error { get; private set; }
     }
 
 
     /*****************
      * Representations
      *****************/
-    public sealed class CollectionRepresentation<TEntity> : IRepresentation<TEntity>
-        where TEntity : class, new()
-    {
-        /* Private fields */
-        string _version = "1.0";
-
-        /* Ctor */
-        CollectionRepresentation(CollectionJsonSerializerSettings settings)
-        {
-            Settings = settings;            
-        }
-        
-        public CollectionRepresentation(TEntity entity,
-            CollectionJsonSerializerSettings settings) : this(settings)
-        {
-           
-
-            Items = new List<ItemRepresentation<TEntity>>
-                    {
-                        new ItemRepresentation<TEntity>(entity, settings)
-                    };
-        }
-
-        public CollectionRepresentation(IEnumerable<TEntity> entities,
-            CollectionJsonSerializerSettings settings) : this(settings)
-        {
-            Items = new List<ItemRepresentation<TEntity>>(entities.Select(entity =>
-                new ItemRepresentation<TEntity>(entity, settings)));
-            
-            Template = new WriteTemplateRepresentation<TEntity>(settings);
-            
-            Links = new List<LinkRepresentation>();
-
-            Queries = GetQueryRepresentations();
-        }
-
-
-        /* Properties */
-        public string Version
-        {
-            get { return _version; }
-            set { _version = value; }
-        }
-
-        public string Href
-        {
-            get { return GetParsedVirtualPath(); }
-        }
-
-        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
-        public IList<LinkRepresentation> Links { get; set; }
-
-        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
-        public IList<ItemRepresentation<TEntity>> Items { get; set; }
-
-        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
-        public IList<QueryRepresentation> Queries { get; set; }
-
-        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
-        public WriteTemplateRepresentation<TEntity> Template { get; set; }
-
-        public CollectionJsonSerializerSettings Settings { get; private set; }
-
-
-        /*private static methods*/
-        static string GetParsedVirtualPath()
-        {
-            UrlInfoBase urlInfo;
-            if (!SingletonFactory<UrlInfoCollection>.Instance
-                .TryFindSingle(typeof(TEntity), Is.Base, out urlInfo))
-                throw new Exception("must be single..."); //TODO exception
-            return urlInfo.VirtualPath;
-        }
-
-        static IList<QueryRepresentation> GetQueryRepresentations()
-        {
-            var queries = SingletonFactory<UrlInfoCollection>.Instance
-                .Find(typeof (TEntity), Is.Query)
-                .Select(ui => new QueryRepresentation(ui)).ToList();
-            if (queries.Any())
-                return queries;
-            return null;
-        }
-    }
 
 
     public sealed class WriteTemplateRepresentation<TEntity> : IRepresentation<TEntity>

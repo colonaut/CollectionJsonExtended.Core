@@ -3,16 +3,16 @@ using Newtonsoft.Json;
 
 namespace CollectionJsonExtended.Core
 {
-    public sealed class ItemRepresentation<TEntity> : IRepresentation<TEntity> where TEntity : class, new()
+    public sealed class ItemRepresentation<TEntity> : CollectionJsonWriter, IRepresentation<TEntity>
+        where TEntity : class, new()
     {
         TEntity _entity;
         
         /* Ctor */
         public ItemRepresentation(TEntity entity,
-            CollectionJsonSerializerSettings settings)
+            CollectionJsonSerializerSettings settings) : base(settings)
         {
-            _entity = entity;
-            Settings = settings;
+            _entity = entity;            
         }
 
 
@@ -41,8 +41,6 @@ namespace CollectionJsonExtended.Core
         {
             get { return Settings.ConversionMethod == ConversionMethod.Data ? _entity : null; }
         }
-
-        public CollectionJsonSerializerSettings Settings { get; private set; }
 
 
         /*private static methods*/

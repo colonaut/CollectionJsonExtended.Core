@@ -6,11 +6,12 @@ using CollectionJsonExtended.Core.Extensions;
 
 namespace CollectionJsonExtended.Core
 {
-    public sealed class QueryRepresentation : IRepresentation
+    public sealed class QueryRepresentation : CollectionJsonWriter, IRepresentation
     {
         readonly UrlInfoBase _urlInfo;
 
-        public QueryRepresentation(UrlInfoBase urlInfo)
+        public QueryRepresentation(UrlInfoBase urlInfo,
+            CollectionJsonSerializerSettings settings) : base(settings)
         {
             _urlInfo = urlInfo;
         }
@@ -60,13 +61,3 @@ namespace CollectionJsonExtended.Core
         }
     }
 }
-
-/*
-    "href" : "http://example.org/search",
-      "rel" : "search",
-      "prompt" : "Enter search string",
-      "data" :
-      [
-        {"name" : "search", "value" : ""}
-      ]
-*/
