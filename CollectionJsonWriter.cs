@@ -34,13 +34,13 @@ namespace CollectionJsonExtended.Core
     }
 
 
-    //The abstract (initializes static stuff)
-    public abstract class CollectionJsonWriter
+    //The abstract (initializes static stuff and settings property for instances)
+    public abstract class RepresentationBase
     {
         //why is all the following defined in an absrtract? http://stackoverflow.com/a/9665168
         static readonly CollectionJsonSerializerSettings DefaultSerializerSettings;
         
-        static CollectionJsonWriter() //this will be envoked at first usage and create the DefaultSettings
+        static RepresentationBase() //this will be envoked at first usage and create the DefaultSettings
         {
             DefaultSerializerSettings = new CollectionJsonSerializerSettings
             {
@@ -49,12 +49,12 @@ namespace CollectionJsonExtended.Core
             };
         }
 
-        protected CollectionJsonWriter()
+        protected RepresentationBase()
         {
             Settings = DefaultSerializerSettings;
         }
         
-        protected CollectionJsonWriter(CollectionJsonSerializerSettings settings)
+        protected RepresentationBase(CollectionJsonSerializerSettings settings)
         {
             Settings = settings ?? DefaultSerializerSettings;
         }
@@ -64,7 +64,7 @@ namespace CollectionJsonExtended.Core
         public CollectionJsonSerializerSettings Settings { get; private set; }
     }
 
-    public sealed class CollectionJsonWriter<TEntity> : CollectionJsonWriter, IRepresentation<TEntity>
+    public sealed class CollectionJsonWriter<TEntity> : RepresentationBase, IRepresentation<TEntity>
         where TEntity : class, new()
     {
         /* Ctor */
@@ -78,13 +78,15 @@ namespace CollectionJsonExtended.Core
         }
 
         public CollectionJsonWriter(TEntity entity,
-            CollectionJsonSerializerSettings settings = null): base(settings)
+            CollectionJsonSerializerSettings settings = null)
+            : base(settings)
         {
             Collection = new CollectionRepresentation<TEntity>(entity, Settings);
         }
 
         public CollectionJsonWriter(IEnumerable<TEntity> entities,
-            CollectionJsonSerializerSettings settings = null) : base(settings)
+            CollectionJsonSerializerSettings settings = null)
+            : base(settings)
         {
             Collection = new CollectionRepresentation<TEntity>(entities, Settings);
         }
@@ -103,13 +105,13 @@ namespace CollectionJsonExtended.Core
      * Representations
      *****************/
 
-
-    public sealed class WriteTemplateRepresentation<TEntity> : IRepresentation<TEntity>
+    //TODO: could be one tempate? compare with read template...
+    public sealed class WriterTemplateRepresentation<TEntity> : RepresentationBase, IRepresentation<TEntity>
         where TEntity : class, new()
     {
-        public WriteTemplateRepresentation(CollectionJsonSerializerSettings settings)
+        public WriterTemplateRepresentation(CollectionJsonSerializerSettings settings)
+            : base(settings)
         {
-            Settings = settings;
             ConversionMethod = settings.ConversionMethod;
         }
 
@@ -126,33 +128,5 @@ namespace CollectionJsonExtended.Core
             get { return typeof(TEntity); }
         }
 
-        public CollectionJsonSerializerSettings Settings { get; private set; }
     }
-
-
-    public sealed class LinkRepresentation : IRepresentation
-    {
-        
-        
-        public string Rel { get; set; }
-        
-        public Uri Href { get; set; }
-
-        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
-        public string Prompt { get; set; }
-
-        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
-        [JsonConverter(typeof(StringEnumConverter))]
-        public RenderType Render { get; set; }
-
-
-        //TODO RenderType vs RenderType in client.. and this should be string?
-        //DEPR, done in client??? or use this... adapt specs
-        public enum RenderType
-        {
-            href,
-            image
-        }
-    }
-
 }

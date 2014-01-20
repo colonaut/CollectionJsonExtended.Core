@@ -5,7 +5,7 @@ using Newtonsoft.Json;
 
 namespace CollectionJsonExtended.Core
 {
-    public sealed class CollectionRepresentation<TEntity> : CollectionJsonWriter, IRepresentation<TEntity>
+    public sealed class CollectionRepresentation<TEntity> : RepresentationBase, IRepresentation<TEntity>
         where TEntity : class, new()
     {
         /* Private fields */
@@ -27,9 +27,9 @@ namespace CollectionJsonExtended.Core
             Items = new List<ItemRepresentation<TEntity>>(entities.Select(entity =>
                 new ItemRepresentation<TEntity>(entity, settings)));
             
-            Template = new WriteTemplateRepresentation<TEntity>(settings);
+            Template = new WriterTemplateRepresentation<TEntity>(settings);
             
-            Links = new List<LinkRepresentation>();
+            Links = GetLinkRepresentations(settings);
 
             Queries = GetQueryRepresentations(settings);
         }
@@ -48,16 +48,16 @@ namespace CollectionJsonExtended.Core
         }
 
         [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
-        public IList<LinkRepresentation> Links { get; set; }
+        public IEnumerable<LinkRepresentation<TEntity>> Links { get; private set; }
 
         [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
-        public IList<ItemRepresentation<TEntity>> Items { get; set; }
+        public IEnumerable<ItemRepresentation<TEntity>> Items { get; private set; }
 
         [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
-        public IList<QueryRepresentation> Queries { get; set; }
+        public IEnumerable<QueryRepresentation> Queries { get; private set; }
 
         [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
-        public WriteTemplateRepresentation<TEntity> Template { get; set; }
+        public WriterTemplateRepresentation<TEntity> Template { get; set; }
 
 
         /*private static methods*/
@@ -70,14 +70,24 @@ namespace CollectionJsonExtended.Core
             return urlInfo.VirtualPath;
         }
 
-        static IList<QueryRepresentation> GetQueryRepresentations(CollectionJsonSerializerSettings settings)
+        static IEnumerable<QueryRepresentation> GetQueryRepresentations(CollectionJsonSerializerSettings settings)
         {
             var queries = SingletonFactory<UrlInfoCollection>.Instance
                 .Find(typeof (TEntity), Is.Query)
-                .Select(ui => new QueryRepresentation(ui, settings)).ToList();
-            if (queries.Any())
-                return queries;
-            return null;
+                .Select(ui => new QueryRepresentation(ui, settings))
+                .ToList();
+            return queries.Any()
+                ? queries : null;
+        }
+
+        static IEnumerable<LinkRepresentation<TEntity>> GetLinkRepresentations(CollectionJsonSerializerSettings settings)
+        {
+            var links = SingletonFactory<UrlInfoCollection>.Instance
+                .Find(typeof(TEntity), Is.LinkForBase)
+                .Select(ui => new LinkRepresentation<TEntity>(ui, settings))
+                .ToList();
+            return links.Any()
+                ? links : null;
         }
     }
 }

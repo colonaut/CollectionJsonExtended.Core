@@ -25,11 +25,11 @@ namespace CollectionJsonExtended.Core.Extensions
                 BindingFlags.Public | BindingFlags.Static);
         
 
-        public static TEntity MapFromData<TEntity>(this ReadTemplateRepresentation<TEntity> readTemplateRepresentation)
+        public static TEntity MapFromData<TEntity>(this ReaderTemplateRepresentation<TEntity> readerTemplateRepresentation)
             where TEntity : class, new()
         {
-            if (readTemplateRepresentation.Data.Any())
-                return MapFromDataObjects(new TEntity(), readTemplateRepresentation.Data) as TEntity; //if data list is empty, entity should be null (no content was set)
+            if (readerTemplateRepresentation.Data.Any())
+                return MapFromDataObjects(new TEntity(), readerTemplateRepresentation.Data) as TEntity; //if data list is empty, entity should be null (no content was set)
             return null;
         }
 

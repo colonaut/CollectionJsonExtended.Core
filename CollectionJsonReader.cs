@@ -8,11 +8,11 @@ namespace CollectionJsonExtended.Core
     {
         public CollectionJsonReader()
         {
-            Template = new ReadTemplateRepresentation<TEntity>();
+            Template = new ReaderTemplateRepresentation<TEntity>();
         }
         
         
-        public ReadTemplateRepresentation<TEntity> Template { get; set; } //TODO How to List of templates?
+        public ReaderTemplateRepresentation<TEntity> Template { get; set; }
 
         public TEntity Entity { get { return Template.Entity; } }
 
@@ -27,7 +27,7 @@ namespace CollectionJsonExtended.Core
     }
 
     
-    public class ReadTemplateRepresentation<TEntity> where TEntity : class, new()
+    public class ReaderTemplateRepresentation<TEntity> where TEntity : class, new()
     {
         private TEntity _entity;
         private IList<DataRepresentation> _data = new List<DataRepresentation>();

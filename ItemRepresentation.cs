@@ -1,9 +1,10 @@
 using System.Collections.Generic;
+using System.Linq;
 using Newtonsoft.Json;
 
 namespace CollectionJsonExtended.Core
 {
-    public sealed class ItemRepresentation<TEntity> : CollectionJsonWriter, IRepresentation<TEntity>
+    public sealed class ItemRepresentation<TEntity> : RepresentationBase, IRepresentation<TEntity>
         where TEntity : class, new()
     {
         TEntity _entity;
@@ -26,12 +27,23 @@ namespace CollectionJsonExtended.Core
         }
 
         [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
-        public IEnumerable<LinkRepresentation> Links { get; set; }
+        public IEnumerable<LinkRepresentation<TEntity>> Links
+        {
+            get
+            {
+                return GetLinkRepresentations(_entity, Settings);                
+            }
+        }
 
         [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
         public TEntity Entity
         {
-            get { return Settings.ConversionMethod == ConversionMethod.Entity ? _entity : null; }
+            get
+            {
+                return Settings.ConversionMethod == ConversionMethod.Entity
+                    ? _entity
+                    : null;
+            }
             set { _entity = value; }
         }
 
@@ -39,7 +51,10 @@ namespace CollectionJsonExtended.Core
         [JsonConverter(typeof (DataRepresentationConverter))]
         public object Data
         {
-            get { return Settings.ConversionMethod == ConversionMethod.Data ? _entity : null; }
+            get
+            {
+                return Settings.ConversionMethod == ConversionMethod.Data ? _entity : null;
+            }
         }
 
 
@@ -56,6 +71,17 @@ namespace CollectionJsonExtended.Core
             var primaryKey = urlInfo.PrimaryKeyProperty.GetValue(entity).ToString();
             var virtualPath = urlInfo.VirtualPath.Replace(urlInfo.PrimaryKeyTemplate, primaryKey);
             return virtualPath;
+        }
+
+        static IEnumerable<LinkRepresentation<TEntity>> GetLinkRepresentations(TEntity entity,
+            CollectionJsonSerializerSettings settings)
+        {
+            var links = SingletonFactory<UrlInfoCollection>.Instance
+                .Find(typeof(TEntity), Is.LinkForItem)
+                .Select(ui => new LinkRepresentation<TEntity>(entity, ui, settings))
+                .ToList();
+            return links.Any()
+                ? links : null;
         }
     }
 }
