@@ -19,21 +19,6 @@ namespace CollectionJsonExtended.Core
         CollectionJsonSerializerSettings Settings { get; }
     }
 
-    public enum As
-    {
-        Collection,
-        Template,
-        Error
-    }
-
-    public enum With
-    {
-        All,
-        Template,
-        Queries
-    }
-
-
     //The abstract (initializes static stuff and settings property for instances)
     public abstract class RepresentationBase
     {

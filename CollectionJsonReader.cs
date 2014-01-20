@@ -27,6 +27,8 @@ namespace CollectionJsonExtended.Core
     }
 
     
+    //TODO merge reader template and writer template?
+
     public class ReaderTemplateRepresentation<TEntity> where TEntity : class, new()
     {
         private TEntity _entity;
