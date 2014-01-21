@@ -5,6 +5,7 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using CollectionJsonExtended.Core.Extensions;
+using CollectionJsonExtended.Core.Services;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
@@ -85,7 +86,7 @@ namespace CollectionJsonExtended.Core
             foreach (var propertyInfo in type.GetProperties())
             {
                 var propertyType = propertyInfo.PropertyType;
-                var resolvedType = propertyType.Name;
+                var resolvedType = propertyType.GetSimpleTypeName();// propertyType.Name; //TODO use simpleTypeNames
                 
                 writer.WriteStartObject();
                 writer.WritePropertyName("name");
