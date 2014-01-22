@@ -56,7 +56,6 @@
     <Compile Include="Extensions\PropertyInfoExtensions.cs" />
     <Compile Include="Extensions\StringExtensions.cs" />
     <Compile Include="Extensions\TypeExtensions.cs" />
-    <Compile Include="Services\TypeResolverService.cs" />
     <Compile Include="ItemRepresentation.cs" />
     <Compile Include="LinkRepresentation.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

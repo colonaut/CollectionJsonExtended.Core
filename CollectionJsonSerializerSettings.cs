@@ -4,9 +4,9 @@ namespace CollectionJsonExtended.Core
 {
     public enum DataPropertyCasing
     {
-        None,
         CamelCase,
-        PascalCase
+        PascalCase,
+        None
     }
 
     public enum ConversionMethod
@@ -14,7 +14,18 @@ namespace CollectionJsonExtended.Core
         Entity,
         Data
     }
-    
+
+    public enum ReadOnlyPropertyHandling //for templates only
+    {
+        Ignore,
+        Include
+    }
+
+    public enum PrimaryKeyPropertyHandling //for all
+    {
+        Ignore,
+        Include
+    }
 
     public class CollectionJsonSerializerSettings
     {

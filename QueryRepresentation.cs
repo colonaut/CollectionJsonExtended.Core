@@ -23,7 +23,7 @@ namespace CollectionJsonExtended.Core
         
         public string Rel { get { return _urlInfo.Relation; } }
 
-        internal IEnumerable<QueryParam> Data
+        public IEnumerable<QueryParam> Data
         {
             get
             {
@@ -36,7 +36,7 @@ namespace CollectionJsonExtended.Core
         public string Prompt { get; set; } //TODO: prompt... how?S        
     }
 
-    internal sealed class QueryParam
+    public sealed class QueryParam
     {
         readonly ParameterInfo _queryParam;
 
