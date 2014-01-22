@@ -13,15 +13,26 @@ namespace CollectionJsonExtended.Core
     public class DataRepresentationConverter : JsonConverter
     {
         static readonly object[] EmptyObjects = new object[0];
-        
+
+        static PropertyInfo GetPrimaryKeyProperty(Type entityType)
+        {
+            UrlInfoBase urlInfo;
+            if (!SingletonFactory<UrlInfoCollection>.Instance
+                .TryFindSingle(entityType, Is.Item, out urlInfo))
+                return null;
+            return urlInfo.PrimaryKeyProperty;            
+        }
+
+
         //TODO CollectionJsonConcreteType: implement prompt (?)
         //TODO evaluate UIHint attribute (template), as fpr example a date or something can be treated different. ensure type is them mvchtml string or something. only valid for items, not for templates!!!
+
         public override void WriteJson(JsonWriter writer, object value, JsonSerializer serializer)
         {
             var entityType = value as Type;
-
             if (entityType != null)
                 WriteDataRepresentation(writer, entityType, serializer);
+            
             else
                 WriteDataRepresentation(writer, value, serializer);
 
@@ -79,11 +90,26 @@ namespace CollectionJsonExtended.Core
         private void WriteDataRepresentation(JsonWriter writer, Type type, JsonSerializer serializer)
         {
             //TODO cache this result somewhere, so we do not have to male the reflection for every call!
-            
+            //json.net seems to provide good caching... check that!
+
+            var primaryKeyPropertyInfo = GetPrimaryKeyProperty(type);
+
             writer.WriteStartArray();
 
             foreach (var propertyInfo in type.GetProperties())
             {
+                //TODO we must find private setters and primary key properties here... and we must NOT serialize them
+
+                if (propertyInfo == primaryKeyPropertyInfo)
+                    continue;
+                
+                if (!propertyInfo.CanWrite)
+                    continue;
+
+                if (propertyInfo.SetMethod == null
+                    || propertyInfo.SetMethod.IsPrivate)
+                    continue;
+
                 var propertyType = propertyInfo.PropertyType;
                 var resolvedType = propertyType.GetSimpleTypeName();// propertyType.Name; //TODO use simpleTypeNames
                 
