@@ -44,6 +44,8 @@ namespace CollectionJsonExtended.Core
 
             foreach (var propertyInfo in obj.GetType().GetProperties())
             {
+                //TODO: if we have an external entity here, we must provide it's query..., query with id1,id2, etc.. for collection of externals... /this apples to relations. (how?), for embedded the embedded item must provide it's link....? 
+                
                 var propertyType = propertyInfo.PropertyType;
                 
                 writer.WriteStartObject();
@@ -111,7 +113,7 @@ namespace CollectionJsonExtended.Core
                     continue;
 
                 var propertyType = propertyInfo.PropertyType;
-                var resolvedType = propertyType.GetSimpleTypeName();// propertyType.Name; //TODO use simpleTypeNames
+                var resolvedTypeName = propertyType.GetSimpleTypeName();// propertyType.Name; //TODO use simpleTypeNames
                 
                 writer.WriteStartObject();
                 writer.WritePropertyName("name");
@@ -163,8 +165,8 @@ namespace CollectionJsonExtended.Core
                     var genericType = propertyType.GetGenericArguments()[0];
                     if (genericType != null)
                     {
-                        resolvedType = string.Format("{0}[{1}]", resolvedType, genericType.Name);
-                        
+                        //resolvedTypeName = string.Format("{0}[{1}]", resolvedTypeName, genericType.Name); //old obsolete
+                        resolvedTypeName = string.Format("{0}[]", genericType.GetSimpleTypeName());
                         if (genericType.IsAbstract)
                             WriteRepresentationAbstracts(writer,
                                 genericType,
@@ -213,7 +215,7 @@ namespace CollectionJsonExtended.Core
 
                 writer.WritePropertyName("type");
                 serializer.Serialize(writer,
-                    resolvedType);
+                    resolvedTypeName);
 
                 writer.WriteEndObject();
             }

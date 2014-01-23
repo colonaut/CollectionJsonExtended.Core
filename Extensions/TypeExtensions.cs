@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
@@ -54,11 +55,20 @@ namespace CollectionJsonExtended.Core.Extensions
             var typeName = type.FullName;
             bool isArray = false, isNullable = false;
 
-            if (type.IsArray) //|| type.GetInterfaces().Contains(typeof (IEnumerable))) TODO: think about that... we might pump this up fir ienumerables of simpleType. but this would only apply to the conversion to cj, it could not be mapped back. mybe we add type extension and do it there just for this project.
+            if (type.IsArray) //|| type.GetInterfaces().Contains(typeof (IEnumerable)))
             {
                 isArray = true;
                 typeName = typeName.Remove(typeName.IndexOf("[]", System.StringComparison.Ordinal), 2);
             }
+            //this is magic fo collection json. we write ienumerables of generic to []
+            //else if (type.GetInterfaces().Contains(typeof (IEnumerable)))
+            //    //TODO Take care of IDictionary which also implement IEnumerable
+            //{
+            //    var genericType = type.GetGenericArguments()[0];
+            //    if (genericType != null)
+            //    {
+            //    }
+            //}
 
             var nullableType = Nullable.GetUnderlyingType(type);
             if (nullableType != null)
