@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using Newtonsoft.Json;
 
 namespace CollectionJsonExtended.Core
@@ -12,8 +13,19 @@ namespace CollectionJsonExtended.Core
         string _version = "1.0";
 
         /* Ctor */
+        public CollectionRepresentation(CollectionJsonSerializerSettings settings)
+            : base(settings)
+        {
+            Template = new WriterTemplateRepresentation<TEntity>(settings);
+
+            Links = GetLinkRepresentations(settings);
+
+            Queries = GetQueryRepresentations(settings);
+        }
+
         public CollectionRepresentation(TEntity entity,
-            CollectionJsonSerializerSettings settings) : base(settings)
+            CollectionJsonSerializerSettings settings)
+            : base(settings)
         {
             Items = new List<ItemRepresentation<TEntity>>
                     {
@@ -22,7 +34,8 @@ namespace CollectionJsonExtended.Core
         }
 
         public CollectionRepresentation(IEnumerable<TEntity> entities,
-            CollectionJsonSerializerSettings settings) : base(settings)
+            CollectionJsonSerializerSettings settings)
+            : base(settings)
         {
             Items = new List<ItemRepresentation<TEntity>>(entities.Select(entity =>
                 new ItemRepresentation<TEntity>(entity, settings)));
@@ -66,7 +79,7 @@ namespace CollectionJsonExtended.Core
             UrlInfoBase urlInfo;
             if (!SingletonFactory<UrlInfoCollection>.Instance
                 .TryFindSingle(typeof(TEntity), Is.Base, out urlInfo))
-                throw new Exception("must be single..."); //TODO exception
+                throw new AmbiguousMatchException("Could not find unique UrlInfo for type " + typeof(TEntity).FullName);
             return urlInfo.VirtualPath;
         }
 

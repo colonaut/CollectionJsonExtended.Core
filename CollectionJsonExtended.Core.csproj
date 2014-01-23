@@ -63,6 +63,7 @@
     <Compile Include="SingletonFactory.cs" />
     <Compile Include="UrlInfoBase.cs" />
     <Compile Include="UrlInfoCollection.cs" />
+    <Compile Include="WriterTemplateRepresentation.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
