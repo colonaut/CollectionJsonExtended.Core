@@ -1,17 +1,21 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
+using CollectionJsonExtended.Core.Attributes;
 using Newtonsoft.Json;
 
 namespace CollectionJsonExtended.Core
 {
     public sealed class ItemRepresentation<TEntity> : RepresentationBase, IRepresentation<TEntity>
-        where TEntity : class, new()
+        where TEntity: class, new()
     {
         TEntity _entity;
         
         /* Ctor */
         public ItemRepresentation(TEntity entity,
-            CollectionJsonSerializerSettings settings) : base(settings)
+            CollectionJsonSerializerSettings settings)
+            : base(settings)
         {
             _entity = entity;            
         }
@@ -76,12 +80,66 @@ namespace CollectionJsonExtended.Core
         static IEnumerable<LinkRepresentation<TEntity>> GetLinkRepresentations(TEntity entity,
             CollectionJsonSerializerSettings settings)
         {
+            //TODO here we would want to find external entity links if we find a collectionjson reference attribuet somewhere deep in this entity....
+            //OR!!!! we try to get that or provide the info when instance of attribute is created...?
+            
+            //we want to cahe this shit here... so we would have reflection, but only once.
+
             var links = SingletonFactory<UrlInfoCollection>.Instance
                 .Find(typeof(TEntity), Is.LinkForItem)
                 .Select(ui => new LinkRepresentation<TEntity>(entity, ui, settings))
                 .ToList();
+
+            links.AddRange(GetReferenceUrlInfos(typeof(TEntity))
+                //TODO: the link representation must get antother constructor... we need to pass the primaryKey... somehow... because we have it here for instance in a Slog... or wany other reference type.
+                //and we must check the relation..... we could add another relation (xxx.reference or s.th.) and the href is totally wrong but that might change with the new signature
+                .Select(ui => new LinkRepresentation<TEntity>(ui, settings))
+                .ToList());
+
             return links.Any()
                 ? links : null;
+        }
+
+        //TODO: better cache... static in generic....
+        static readonly IDictionary<Type, IEnumerable<UrlInfoBase>> ReferenceUrlInfos =
+            new Dictionary<Type, IEnumerable<UrlInfoBase>>();
+
+        static IEnumerable<UrlInfoBase> GetReferenceUrlInfos(Type entityType)
+        {
+            IEnumerable<UrlInfoBase> referenceUrlInfos;
+            if (ReferenceUrlInfos.TryGetValue(entityType, out referenceUrlInfos))
+                return referenceUrlInfos;
+
+            var urlInfos = new List<UrlInfoBase>();
+            foreach (var propertyInfo in entityType.GetProperties())
+            {
+
+                if (propertyInfo.Name == "SlogId")
+                {
+                    var y = propertyInfo
+                        .GetCustomAttribute<CollectionJsonReferenceAttribute>();
+                    
+                    var x = "Hu";
+
+                }
+                
+                
+                if (propertyInfo
+                    .GetCustomAttribute<CollectionJsonReferenceAttribute>()
+                    == null)
+                    continue;
+
+                var itemUrlInfo = SingletonFactory<UrlInfoCollection>.Instance
+                    .Find(propertyInfo.ReflectedType, Is.Item).SingleOrDefault();
+                if (itemUrlInfo != null
+                    && itemUrlInfo.PrimaryKeyProperty.PropertyType.Name
+                    == propertyInfo.PropertyType.Name)
+                    urlInfos.Add(itemUrlInfo);
+            }
+
+            //TODO: more levels. only one level for now....
+            ReferenceUrlInfos.Add(entityType, urlInfos);
+            return urlInfos;
         }
     }
 }

@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using CollectionJsonExtended.Core.Attributes;
 using CollectionJsonExtended.Core.Extensions;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
@@ -14,7 +15,7 @@ namespace CollectionJsonExtended.Core
     {
         static readonly object[] EmptyObjects = new object[0];
 
-        static PropertyInfo GetPrimaryKeyProperty(Type entityType)
+        static PropertyInfo GetPrimaryKeyProperty(Type entityType) //TODO an Type binden....
         {
             UrlInfoBase urlInfo;
             if (!SingletonFactory<UrlInfoCollection>.Instance
@@ -23,8 +24,23 @@ namespace CollectionJsonExtended.Core
             return urlInfo.PrimaryKeyProperty;            
         }
 
+        static bool IsReference(PropertyInfo propertyInfo) //TODO an PropertyType binden...
+        {
+            var attribute =
+                propertyInfo.GetCustomAttribute<CollectionJsonReferenceAttribute>();
 
-        //TODO CollectionJsonConcreteType: implement prompt (?)
+            if (attribute == null)
+                return false;
+
+            var primaryKeyProperty = GetPrimaryKeyProperty(attribute.ReferenceType);
+            if (primaryKeyProperty == null)
+                return false;
+
+            return primaryKeyProperty.PropertyType.Name
+                == propertyInfo.PropertyType.Name;
+        }
+
+
         //TODO evaluate UIHint attribute (template), as fpr example a date or something can be treated different. ensure type is them mvchtml string or something. only valid for items, not for templates!!!
 
         public override void WriteJson(JsonWriter writer, object value, JsonSerializer serializer)
@@ -45,7 +61,13 @@ namespace CollectionJsonExtended.Core
             foreach (var propertyInfo in obj.GetType().GetProperties())
             {
                 //TODO: if we have an external entity here, we must provide it's query..., query with id1,id2, etc.. for collection of externals... /this apples to relations. (how?), for embedded the embedded item must provide it's link....? 
-                
+                //for i.e. items this only happens if we convert to data! seriralizing to entity will not trigger this...
+                if (IsReference(propertyInfo))
+                {
+                    var x = "YES";
+                }
+
+
                 var propertyType = propertyInfo.PropertyType;
                 
                 writer.WriteStartObject();
@@ -101,6 +123,17 @@ namespace CollectionJsonExtended.Core
             foreach (var propertyInfo in type.GetProperties())
             {
                 //TODO we must find private setters and primary key properties here... and we must NOT serialize them
+                //TODO we must find a way to provide a query link or s.th in the template that offers a choice of entities for external entities! (we must extend the cj spec for that)
+
+                //Here we evaluate if wwe have a reference attribute anf try to find
+                //an entry with the primary key matching they type to the property.
+                //if so we must create a link...
+
+                if (IsReference(propertyInfo))
+                {
+                    var x = "YES";
+                }
+
 
                 if (propertyInfo == primaryKeyPropertyInfo)
                     continue;
@@ -165,7 +198,6 @@ namespace CollectionJsonExtended.Core
                     var genericType = propertyType.GetGenericArguments()[0];
                     if (genericType != null)
                     {
-                        //resolvedTypeName = string.Format("{0}[{1}]", resolvedTypeName, genericType.Name); //old obsolete
                         resolvedTypeName = string.Format("{0}[]", genericType.GetSimpleTypeName());
                         if (genericType.IsAbstract)
                             WriteRepresentationAbstracts(writer,

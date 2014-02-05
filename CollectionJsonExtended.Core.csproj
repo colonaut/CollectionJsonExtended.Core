@@ -44,6 +44,7 @@
   <ItemGroup>
     <Compile Include="Attributes\CollectionJsonPropertyAttribute.cs" />
     <Compile Include="Attributes\CollectionJsonConcreteTypeAttribute.cs" />
+    <Compile Include="Attributes\CollectionJsonReferenceAttribute.cs" />
     <Compile Include="CollectionJsonReader.cs" />
     <Compile Include="CollectionJsonSerializerSettings.cs" />
     <Compile Include="CollectionJsonWriter.cs" />
