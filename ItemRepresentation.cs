@@ -90,56 +90,56 @@ namespace CollectionJsonExtended.Core
                 .Select(ui => new LinkRepresentation<TEntity>(entity, ui, settings))
                 .ToList();
 
-            links.AddRange(GetReferenceUrlInfos(typeof(TEntity))
-                //TODO: the link representation must get antother constructor... we need to pass the primaryKey... somehow... because we have it here for instance in a Slog... or wany other reference type.
-                //and we must check the relation..... we could add another relation (xxx.reference or s.th.) and the href is totally wrong but that might change with the new signature
-                .Select(ui => new LinkRepresentation<TEntity>(ui, settings))
-                .ToList());
+            //Debug first
+            var referenceLinks = GetReferenceLinkRepresentations(entity, settings);
+
+            links.AddRange(referenceLinks);
 
             return links.Any()
                 ? links : null;
         }
 
-        //TODO: better cache... static in generic....
-        static readonly IDictionary<Type, IEnumerable<UrlInfoBase>> ReferenceUrlInfos =
-            new Dictionary<Type, IEnumerable<UrlInfoBase>>();
+        //TODO: better cache... static in generic works but is not that good......
+        static readonly IDictionary<Type, IList<Tuple<UrlInfoBase, PropertyInfo>>> ReferenceUrlInfos =
+            new Dictionary<Type, IList<Tuple<UrlInfoBase, PropertyInfo>>>();
 
-        static IEnumerable<UrlInfoBase> GetReferenceUrlInfos(Type entityType)
+        static IEnumerable<LinkRepresentation<TEntity>> GetReferenceLinkRepresentations(TEntity entity,
+            CollectionJsonSerializerSettings settings)
         {
-            IEnumerable<UrlInfoBase> referenceUrlInfos;
-            if (ReferenceUrlInfos.TryGetValue(entityType, out referenceUrlInfos))
-                return referenceUrlInfos;
-
-            var urlInfos = new List<UrlInfoBase>();
-            foreach (var propertyInfo in entityType.GetProperties())
+            IList<Tuple<UrlInfoBase, PropertyInfo>> referenceUrlInfos;
+            if (!ReferenceUrlInfos.TryGetValue(typeof(TEntity), out referenceUrlInfos))
             {
-
-                if (propertyInfo.Name == "SlogId")
+                referenceUrlInfos = new List<Tuple<UrlInfoBase, PropertyInfo>>();
+                foreach (var propertyInfo in typeof(TEntity).GetProperties())
                 {
-                    var y = propertyInfo
+                    var attr = propertyInfo
                         .GetCustomAttribute<CollectionJsonReferenceAttribute>();
-                    
-                    var x = "Hu";
+                    if (attr == null)
+                        continue;
 
+                    var itemUrlInfo = SingletonFactory<UrlInfoCollection>.Instance
+                        .Find(attr.ReferenceType, Is.Item).SingleOrDefault();
+                    if (itemUrlInfo == null)
+                        continue;
+
+                    if (itemUrlInfo.PrimaryKeyProperty.PropertyType.Name
+                        != propertyInfo.PropertyType.Name)
+                        throw new TypeLoadException(
+                            "Referenced primary key property type does not match" +
+                            "primary key property type of found Is.Item UrlInfo");
+
+                    referenceUrlInfos.Add(new Tuple<UrlInfoBase, PropertyInfo>(itemUrlInfo, propertyInfo));
                 }
-                
-                
-                if (propertyInfo
-                    .GetCustomAttribute<CollectionJsonReferenceAttribute>()
-                    == null)
-                    continue;
-
-                var itemUrlInfo = SingletonFactory<UrlInfoCollection>.Instance
-                    .Find(propertyInfo.ReflectedType, Is.Item).SingleOrDefault();
-                if (itemUrlInfo != null
-                    && itemUrlInfo.PrimaryKeyProperty.PropertyType.Name
-                    == propertyInfo.PropertyType.Name)
-                    urlInfos.Add(itemUrlInfo);
+                //TODO: more levels. only one level for now....
+                ReferenceUrlInfos.Add(typeof(TEntity), referenceUrlInfos);
             }
 
-            //TODO: more levels. only one level for now....
-            ReferenceUrlInfos.Add(entityType, urlInfos);
-            return urlInfos;
+            return referenceUrlInfos.Select(tuple =>
+                new LinkRepresentation<TEntity>(entity,
+                    tuple.Item1,
+                    tuple.Item2,
+                    settings));
         }
+        
     }
 }

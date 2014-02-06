@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Reflection;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
 
@@ -9,12 +10,13 @@ namespace CollectionJsonExtended.Core
     {
         readonly UrlInfoBase _urlInfo;
         readonly TEntity _entity;
+        readonly PropertyInfo _referencePrimaryKeyProperty;
 
-        public LinkRepresentation(UrlInfoBase urlInfo,
+        public LinkRepresentation(UrlInfoBase referenceUrlInfo,
             CollectionJsonSerializerSettings settings)
             : base(settings)
         {
-            _urlInfo = urlInfo;
+            _urlInfo = referenceUrlInfo;
         }
 
         public LinkRepresentation(TEntity entity,
@@ -26,16 +28,34 @@ namespace CollectionJsonExtended.Core
             _urlInfo = urlInfo;
         }
 
+        public LinkRepresentation(TEntity entity,
+            UrlInfoBase referenceUrlInfo,
+            PropertyInfo referencePrimaryKeyProperty,
+            CollectionJsonSerializerSettings settings)
+            : base(settings)
+        {
+            _entity = entity;
+            _urlInfo = referenceUrlInfo;
+            _referencePrimaryKeyProperty = referencePrimaryKeyProperty;
+        }
 
         /*properties*/
         public string Rel
         {
-            get { return _urlInfo.Relation; }
+            get
+            {
+                return _urlInfo.Relation;
+            }
         }
 
         public string Href
         {
-            get { return GetParsedVirtualPath(_entity, _urlInfo); }
+            get
+            {
+                return GetParsedVirtualPath(_entity,
+                    _urlInfo,
+                    _referencePrimaryKeyProperty);
+            }
         } 
 
         [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
@@ -49,12 +69,18 @@ namespace CollectionJsonExtended.Core
 
         
         /*private static methods*/
-        static string GetParsedVirtualPath(TEntity entity, UrlInfoBase urlInfo)
+        static string GetParsedVirtualPath(TEntity entity,
+            UrlInfoBase urlInfo,
+            PropertyInfo referencePrimaryKeyProperty = null)
         {
             if (entity == null)
                 return urlInfo.VirtualPath;
-            var primaryKey = urlInfo.PrimaryKeyProperty.GetValue(entity).ToString();
-            var virtualPath = urlInfo.VirtualPath.Replace(urlInfo.PrimaryKeyTemplate, primaryKey);
+
+            var primaryKeyValue = referencePrimaryKeyProperty != null
+                ? referencePrimaryKeyProperty.GetValue(entity).ToString()
+                : urlInfo.PrimaryKeyProperty.GetValue(entity).ToString();
+
+            var virtualPath = urlInfo.VirtualPath.Replace(urlInfo.PrimaryKeyTemplate, primaryKeyValue);
             return virtualPath;
         }
     }
