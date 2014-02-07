@@ -80,37 +80,49 @@ namespace CollectionJsonExtended.Core
         static IEnumerable<LinkRepresentation<TEntity>> GetLinkRepresentations(TEntity entity,
             CollectionJsonSerializerSettings settings)
         {
-            //TODO here we would want to find external entity links if we find a collectionjson reference attribuet somewhere deep in this entity....
-            //OR!!!! we try to get that or provide the info when instance of attribute is created...?
-            
-            //we want to cahe this shit here... so we would have reflection, but only once.
-
             var links = SingletonFactory<UrlInfoCollection>.Instance
                 .Find(typeof(TEntity), Is.ItemLink)
                 .Select(ui => new LinkRepresentation<TEntity>(entity, ui, settings))
                 .ToList();
 
-            //Debug first
             var referenceLinks = GetReferenceLinkRepresentations(entity, settings);
-
             links.AddRange(referenceLinks);
 
             return links.Any()
                 ? links : null;
         }
 
-        //TODO: better cache... static in generic works but is not that good......
-        static readonly IDictionary<Type, IList<Tuple<UrlInfoBase, PropertyInfo>>> ReferenceUrlInfos =
-            new Dictionary<Type, IList<Tuple<UrlInfoBase, PropertyInfo>>>();
-
         static IEnumerable<LinkRepresentation<TEntity>> GetReferenceLinkRepresentations(TEntity entity,
             CollectionJsonSerializerSettings settings)
         {
-            IList<Tuple<UrlInfoBase, PropertyInfo>> referenceUrlInfos;
-            if (!ReferenceUrlInfos.TryGetValue(typeof(TEntity), out referenceUrlInfos))
+            return SingletonFactory<ReferenceUrlInfoCollection>.Instance
+                .Find(typeof (TEntity))
+                .Select(tuple =>
+                    new LinkRepresentation<TEntity>(entity,
+                        tuple.Item1,
+                        tuple.Item2,
+                        settings));
+        }
+
+
+        private class ReferenceUrlInfoCollection
+        {
+            readonly IDictionary<Type, IList<Tuple<UrlInfoBase, PropertyInfo>>> _referenceUrlInfos;
+
+            public ReferenceUrlInfoCollection()
             {
+                _referenceUrlInfos = new Dictionary<Type, IList<Tuple<UrlInfoBase, PropertyInfo>>>();
+            }
+
+
+            public IEnumerable<Tuple<UrlInfoBase, PropertyInfo>> Find(Type entityType)
+            {
+                IList<Tuple<UrlInfoBase, PropertyInfo>> referenceUrlInfos;
+                if (_referenceUrlInfos.TryGetValue(entityType, out referenceUrlInfos))
+                    return referenceUrlInfos;
+                
                 referenceUrlInfos = new List<Tuple<UrlInfoBase, PropertyInfo>>();
-                foreach (var propertyInfo in typeof(TEntity).GetProperties())
+                foreach (var propertyInfo in typeof (TEntity).GetProperties())
                 {
                     var attr = propertyInfo
                         .GetCustomAttribute<CollectionJsonReferenceAttribute>();
@@ -131,15 +143,10 @@ namespace CollectionJsonExtended.Core
                     referenceUrlInfos.Add(new Tuple<UrlInfoBase, PropertyInfo>(itemUrlInfo, propertyInfo));
                 }
                 //TODO: more levels. only one level for now....
-                ReferenceUrlInfos.Add(typeof(TEntity), referenceUrlInfos);
-            }
+                _referenceUrlInfos.Add(entityType, referenceUrlInfos);
 
-            return referenceUrlInfos.Select(tuple =>
-                new LinkRepresentation<TEntity>(entity,
-                    tuple.Item1,
-                    tuple.Item2,
-                    settings));
+                return referenceUrlInfos;
+            }
         }
-        
     }
 }
