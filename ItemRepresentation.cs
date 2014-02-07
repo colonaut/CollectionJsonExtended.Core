@@ -86,7 +86,7 @@ namespace CollectionJsonExtended.Core
             //we want to cahe this shit here... so we would have reflection, but only once.
 
             var links = SingletonFactory<UrlInfoCollection>.Instance
-                .Find(typeof(TEntity), Is.LinkForItem)
+                .Find(typeof(TEntity), Is.ItemLink)
                 .Select(ui => new LinkRepresentation<TEntity>(entity, ui, settings))
                 .ToList();
 
@@ -126,7 +126,7 @@ namespace CollectionJsonExtended.Core
                         != propertyInfo.PropertyType.Name)
                         throw new TypeLoadException(
                             "Referenced primary key property type does not match" +
-                            "primary key property type of found Is.Item UrlInfo");
+                            " primary key property type of found Is.Item UrlInfo");
 
                     referenceUrlInfos.Add(new Tuple<UrlInfoBase, PropertyInfo>(itemUrlInfo, propertyInfo));
                 }

@@ -77,10 +77,14 @@ namespace CollectionJsonExtended.Core
                 return urlInfo.VirtualPath;
 
             var primaryKeyValue = referencePrimaryKeyProperty != null
-                ? referencePrimaryKeyProperty.GetValue(entity).ToString()
-                : urlInfo.PrimaryKeyProperty.GetValue(entity).ToString();
+                ? referencePrimaryKeyProperty.GetValue(entity)
+                : urlInfo.PrimaryKeyProperty.GetValue(entity);
 
-            var virtualPath = urlInfo.VirtualPath.Replace(urlInfo.PrimaryKeyTemplate, primaryKeyValue);
+            var virtualPath = urlInfo.VirtualPath.Replace(urlInfo.PrimaryKeyTemplate,
+                primaryKeyValue.ToString());
+
+            //TODO if we get null (i.e at a reference with no id set) a link should not be created (???)
+
             return virtualPath;
         }
     }

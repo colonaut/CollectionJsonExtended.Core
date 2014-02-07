@@ -8,8 +8,8 @@ namespace CollectionJsonExtended.Core
     {
         Base,
         Item,
-        LinkForBase,
-        LinkForItem,
+        BaseLink,
+        ItemLink,
         Template,
         Query,
         Create,

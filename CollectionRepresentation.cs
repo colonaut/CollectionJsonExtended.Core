@@ -96,7 +96,7 @@ namespace CollectionJsonExtended.Core
         static IEnumerable<LinkRepresentation<TEntity>> GetLinkRepresentations(CollectionJsonSerializerSettings settings)
         {
             var links = SingletonFactory<UrlInfoCollection>.Instance
-                .Find(typeof(TEntity), Is.LinkForBase)
+                .Find(typeof(TEntity), Is.BaseLink)
                 .Select(ui => new LinkRepresentation<TEntity>(ui, settings))
                 .ToList();
             return links.Any()
