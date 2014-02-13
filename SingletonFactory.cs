@@ -3,12 +3,14 @@ using System;
 namespace CollectionJsonExtended.Core
 {
    
-    public interface ISingletonFactory<out T> where T : class, new()
+    public interface ISingletonFactory<out T>
+        where T : class, new()
     {
-        T GetInstance();
+        T GetInstance();        
     }
 
-    public class SingletonFactory<T> : ISingletonFactory<T> where T : class, new()
+    public class SingletonFactory<T>: ISingletonFactory<T>
+        where T : class, new()
     {
         private static volatile T _instance;
         private static readonly object _syncRoot = new object();
