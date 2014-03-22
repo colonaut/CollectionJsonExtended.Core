@@ -249,7 +249,14 @@ namespace CollectionJsonExtended.Core.Extensions
         static object ValueAsValueType(this DataRepresentation dataRepresentation,
             Type type)
         {
-            return Convert.ChangeType(dataRepresentation.Value, type, CultureInfo.InvariantCulture);
+            //TODO: VALIDATE AND EXTEND -- some value types (as string) represent a complex object! i.e. DateTimeOffset...
+            switch (type.Name)
+            {
+                case "DateTimeOffset":
+                    return DateTimeOffset.Parse(dataRepresentation.Value as string);
+                default:
+                    return Convert.ChangeType(dataRepresentation.Value, type, CultureInfo.InvariantCulture);
+            }          
         }
 
         static object ValuesAsList(this DataRepresentation dataRepresentation,

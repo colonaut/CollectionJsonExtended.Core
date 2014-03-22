@@ -4,6 +4,8 @@ using Newtonsoft.Json;
 
 namespace CollectionJsonExtended.Core
 {
+    //TODO we need to get rid of the template level, as we send {template:{...}} which is then already data or entity...
+    //TODO: empty complex model lists do not work :( we must check why..., well because objetcs is null then.. for whatever reason...
     public class CollectionJsonReader<TEntity> where TEntity : class, new()
     {
         public CollectionJsonReader()
@@ -14,6 +16,7 @@ namespace CollectionJsonExtended.Core
         
         public ReaderTemplateRepresentation<TEntity> Template { get; set; }
 
+        /*getters for convenience in c# code*/
         public TEntity Entity { get { return Template.Entity; } }
 
         public IEnumerable<DataRepresentation> Data { get { return Template.Data; } } 
@@ -27,8 +30,6 @@ namespace CollectionJsonExtended.Core
     }
 
     
-    //TODO merge reader template and writer template?
-
     public class ReaderTemplateRepresentation<TEntity> where TEntity : class, new()
     {
         private TEntity _entity;

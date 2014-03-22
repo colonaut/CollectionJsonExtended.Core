@@ -3,6 +3,8 @@ using Newtonsoft.Json;
 
 namespace CollectionJsonExtended.Core
 {
+    //TODO whene getting json in controller it has data. we must fill onjects, etc...
+    
     public class DataRepresentation : IRepresentation
     {
         public string Name { get; set; }
