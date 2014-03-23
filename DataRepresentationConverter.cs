@@ -15,7 +15,7 @@ namespace CollectionJsonExtended.Core
     {
         static readonly object[] EmptyObjects = new object[0];
 
-        static PropertyInfo GetPrimaryKeyProperty(Type entityType) //TODO an Type binden....
+        static PropertyInfo GetPrimaryKeyProperty(Type entityType) //TODO an Type extension binden....
         {
             UrlInfoBase urlInfo;
             if (!SingletonFactory<UrlInfoCollection>.Instance
@@ -24,7 +24,7 @@ namespace CollectionJsonExtended.Core
             return urlInfo.PrimaryKeyProperty;            
         }
 
-        static bool IsReference(PropertyInfo propertyInfo) //TODO an PropertyType binden...
+        static bool IsReference(PropertyInfo propertyInfo) //TODO an PropertyType extensionS binden...
         {
             var attribute =
                 propertyInfo.GetCustomAttribute<CollectionJsonReferenceAttribute>();
@@ -40,6 +40,16 @@ namespace CollectionJsonExtended.Core
                 == propertyInfo.PropertyType.Name;
         }
 
+        static TemplateValueHandling GetTemplateValueHandling(PropertyInfo propertyInfo)
+        {
+            var attribute =
+                propertyInfo.GetCustomAttribute<CollectionJsonPropertyAttribute>();
+
+            if (attribute == null)
+                return TemplateValueHandling.Include;
+
+            return attribute.TemplateValueHandling;
+        }
 
         //TODO evaluate UIHint attribute (template), as fpr example a date or something can be treated different. ensure type is them mvchtml string or something. only valid for items, not for templates!!!
 
@@ -60,7 +70,7 @@ namespace CollectionJsonExtended.Core
 
             foreach (var propertyInfo in obj.GetType().GetProperties())
             {
-                //TODO: if we have an external entity here, we must provide it's query..., query with id1,id2, etc.. for collection of externals... /this apples to relations. (how?), for embedded the embedded item must provide it's link....? 
+                //TODO: if we have an external entity here, we must provide it's query..., query with id1,id2, etc.. for collection of externals... /this applies to relations. (how?), for embedded the embedded item must provide it's link....? 
                 //for i.e. items this only happens if we convert to data! seriralizing to entity will not trigger this...
                 if (IsReference(propertyInfo))
                 {
@@ -134,6 +144,8 @@ namespace CollectionJsonExtended.Core
                     var x = "YES";
                 }
 
+                if (GetTemplateValueHandling(propertyInfo) == TemplateValueHandling.Ignore)
+                    continue;
 
                 if (propertyInfo == primaryKeyPropertyInfo)
                     continue;

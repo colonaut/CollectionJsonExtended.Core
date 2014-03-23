@@ -2,6 +2,8 @@
 
 namespace CollectionJsonExtended.Core.Attributes
 {
+    //TODO: probably depr. as we find types via assembly... (this has to be checked)
+    
     /// <summary>
     /// Instructs the CollectionJson serialization and deserialization to use the given concrete type for the abstract or interface property.
     /// A list of valid concrete types can be provided by multiple usage of this attribute. 
