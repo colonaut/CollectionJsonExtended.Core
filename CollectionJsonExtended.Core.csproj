@@ -62,9 +62,9 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="QueryRepresentation.cs" />
     <Compile Include="SingletonFactory.cs" />
+    <Compile Include="TemplateRepresentation.cs" />
     <Compile Include="UrlInfoBase.cs" />
     <Compile Include="UrlInfoCollection.cs" />
-    <Compile Include="WriterTemplateRepresentation.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
