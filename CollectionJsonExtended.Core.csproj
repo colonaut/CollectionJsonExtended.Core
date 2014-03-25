@@ -53,7 +53,7 @@
     <Compile Include="DataRepresentationConverter.cs" />
     <Compile Include="ErrorRepresentation.cs" />
     <Compile Include="Extensions\CollectionJsonReaderExtensions.cs" />
-    <Compile Include="CollectionJsonWriterExtensions.cs" />
+    <Compile Include="Extensions\CollectionJsonWriterExtensions.cs" />
     <Compile Include="Extensions\PropertyInfoExtensions.cs" />
     <Compile Include="Extensions\StringExtensions.cs" />
     <Compile Include="Extensions\TypeExtensions.cs" />

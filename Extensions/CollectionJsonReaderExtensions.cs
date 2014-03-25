@@ -81,9 +81,10 @@ namespace CollectionJsonExtended.Core.Extensions
                 #endregion
 
                 #region Map IEnumerable
-                if (propertyType.GetInterfaces().Contains(typeof (IEnumerable))) //Dictionaries also use IEnumerable. They have to be treated different above or within. Or maybe works....
+                if (propertyType.GetInterfaces().Contains(typeof (IEnumerable))) //TODO Dictionaries also use IEnumerable. They have to be treated different above or within. Or maybe works....
                 {
                     var genericType = propertyType.GetGenericArguments()[0];
+
                     if (genericType == null)
                         throw new NullReferenceException(string.Format(
                             "Could not determine genericType for {0}, {1}",
@@ -185,35 +186,51 @@ namespace CollectionJsonExtended.Core.Extensions
             Type type)
         {
             var dataObjectArray = Array.CreateInstance(type, dataRepresentation.Objects.Count);
-            for (var i = 0; i < dataRepresentation.Objects.Count; i++)
+            
+            if (dataRepresentation.Objects != null) //if this is not null here, which can happen because of mvc json mapping maps an empty json array to null instead of an empty array.
             {
-                var objectInstance = Activator.CreateInstance(type);
-                dataObjectArray.SetValue(MapFromDataObjects(objectInstance, dataRepresentation.Objects[i].Data as IList<DataRepresentation>), i);
+                for (var i = 0; i < dataRepresentation.Objects.Count; i++)
+                {
+                    var objectInstance = Activator.CreateInstance(type);
+                    dataObjectArray.SetValue(
+                        MapFromDataObjects(objectInstance,
+                            dataRepresentation.Objects[i].Data as IList<DataRepresentation>), i);
+                }
             }
+            
             return dataObjectArray;
         }
+        
         
         static object ObjectsAsList(this DataRepresentation dataRepresentation,
             Type type)
         {
             var dataObjectsList = new List<object>();
-            foreach (var dataObject in dataRepresentation.Objects)
+            
+            if (dataRepresentation.Objects != null) //if this is not null here, which can happen because of mvc json mapping maps an empty json array to null instead of an empty array.
             {
-                try
+                foreach (var dataObject in dataRepresentation.Objects)
                 {
-                    if (type.IsInterface)
-                        throw new Exception("Implement attribute usage JsonInterfaceProperty or reflect dowm via assemply info (expensive!!!)");
-                    
-                    var objectInstance = Activator.CreateInstance(type);
-                    var resolvedObjectInstance = MapFromDataObjects(objectInstance, dataObject.Data as IList<DataRepresentation>);
-                    dataObjectsList.Add(resolvedObjectInstance);
+                    try
+                    {
+                        if (type.IsInterface)
+                            throw new Exception(
+                                "Implement attribute usage JsonInterfaceProperty or reflect dowm via assemply info (expensive!!!)");
+
+                        var objectInstance = Activator.CreateInstance(type);
+                        var resolvedObjectInstance = MapFromDataObjects(objectInstance,
+                            dataObject.Data as IList<DataRepresentation>);
+                        dataObjectsList.Add(resolvedObjectInstance);
+                    }
+                    catch (Exception e)
+                    {
+                        throw new Exception(string.Format("Could not create instance for {0}, Inner exception: {1}",
+                            type, e.Message));
+                    }
+
                 }
-                catch (Exception e)
-                {
-                    throw new Exception(string.Format("Could not create instance for {0}, Inner exception: {1}", type, e.Message));
-                }
-               
             }
+
             var castedGenericList = EnumarableCastMethod.MakeGenericMethod(type).Invoke(null, new object[] { dataObjectsList });
             return EnumerableToListMethod.MakeGenericMethod(type).Invoke(null, new object[] { castedGenericList });
         }
@@ -223,28 +240,34 @@ namespace CollectionJsonExtended.Core.Extensions
             IList<Type> instanceTypes)
         {
             var dataObjectsList = new List<object>();
-            foreach (var dataObject in dataRepresentation.Objects)
+            if (dataRepresentation.Objects != null) //if this is not null here, which can happen because of mvc json mapping maps an empty json array to null instead of an empty array.
             {
-                if (dataObject.Type == null)
-                    throw new InvalidDataException(string.Format(
-                        "No concrete type specified for abstract type {0}", abstractType.Name));
-                
-                var instanceType = instanceTypes
-                    .SingleOrDefault(t => String.Equals(t.Name, dataObject.Type, StringComparison.CurrentCultureIgnoreCase));
-                
-                if (instanceType == null)
-                    throw new InvalidDataException(string.Format(
-                        "Could not determine concrete type for abstract ",
-                        abstractType.Name));
+                foreach (var dataObject in dataRepresentation.Objects)
+                {
+                    if (dataObject.Type == null)
+                        throw new InvalidDataException(string.Format(
+                            "No concrete type specified for abstract type {0}", abstractType.Name));
 
-                var objectInstance = Activator.CreateInstance(instanceType);
-                var resolvedObjectInstance = MapFromDataObjects(objectInstance,
-                    dataObject.Data as IList<DataRepresentation>);
-                dataObjectsList.Add(resolvedObjectInstance);
+                    var instanceType = instanceTypes
+                        .SingleOrDefault(
+                            t => String.Equals(t.Name, dataObject.Type, StringComparison.CurrentCultureIgnoreCase));
+
+                    if (instanceType == null)
+                        throw new InvalidDataException(string.Format(
+                            "Could not determine concrete type for abstract ",
+                            abstractType.Name));
+
+                    var objectInstance = Activator.CreateInstance(instanceType);
+                    var resolvedObjectInstance = MapFromDataObjects(objectInstance,
+                        dataObject.Data as IList<DataRepresentation>);
+                    dataObjectsList.Add(resolvedObjectInstance);
+                }
             }
+
             var castedGenericList = EnumarableCastMethod.MakeGenericMethod(abstractType).Invoke(null, new object[] { dataObjectsList });
             return EnumerableToListMethod.MakeGenericMethod(abstractType).Invoke(null, new object[] { castedGenericList });
         }
+
 
         static object ValueAsValueType(this DataRepresentation dataRepresentation,
             Type type)
@@ -259,20 +282,24 @@ namespace CollectionJsonExtended.Core.Extensions
             }          
         }
 
+
         static object ValuesAsList(this DataRepresentation dataRepresentation,
             Type itemType)
         {
             if (dataRepresentation.Values == null)
-                throw new NullReferenceException("DataObject.Values is null");
+                throw new NullReferenceException("DataObject.Values");
+
             var castedEnumerable =  EnumarableCastMethod.MakeGenericMethod(itemType).Invoke(null, new object[] { dataRepresentation.Values });
             return EnumerableToListMethod.MakeGenericMethod(itemType).Invoke(null, new object[] { castedEnumerable });
         }
+
 
         static object ValuesAsArray(this DataRepresentation dataRepresentation,
             Type itemType)
         {
             if (dataRepresentation.Values == null)
-                throw new NullReferenceException("DataRepresenation.Values is null");
+                throw new NullReferenceException("DataRepresenation.Values");
+
             var castedEnumerable = EnumarableCastMethod.MakeGenericMethod(itemType).Invoke(null, new object[] { dataRepresentation.Values });
             return EnumerableToArrayMethod.MakeGenericMethod(itemType).Invoke(null, new object[] { castedEnumerable });
         }
