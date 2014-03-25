@@ -16,7 +16,7 @@ namespace CollectionJsonExtended.Core
         public CollectionRepresentation(CollectionJsonSerializerSettings settings)
             : base(settings)
         {
-            Template = new WriterTemplateRepresentation<TEntity>(settings);
+            Template = new TemplateRepresentation<TEntity>(settings);
 
             Links = GetLinkRepresentations(settings);
 
@@ -40,7 +40,7 @@ namespace CollectionJsonExtended.Core
             Items = new List<ItemRepresentation<TEntity>>(entities.Select(entity =>
                 new ItemRepresentation<TEntity>(entity, settings)));
             
-            Template = new WriterTemplateRepresentation<TEntity>(settings);
+            Template = new TemplateRepresentation<TEntity>(settings);
             
             Links = GetLinkRepresentations(settings);
 
@@ -70,7 +70,7 @@ namespace CollectionJsonExtended.Core
         public IEnumerable<QueryRepresentation> Queries { get; private set; }
 
         [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
-        public WriterTemplateRepresentation<TEntity> Template { get; set; }
+        public TemplateRepresentation<TEntity> Template { get; set; }
 
 
         /*private static methods*/

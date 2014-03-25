@@ -4,33 +4,7 @@ using Newtonsoft.Json;
 
 namespace CollectionJsonExtended.Core
 {
-    //TODO we need to get rid of the template level, as we send {template:{...}} which is then already data or entity...
-    //TODO: empty complex model lists do not work :( we must check why..., well because objetcs is null then.. for whatever reason...
     public class CollectionJsonReader<TEntity> where TEntity : class, new()
-    {
-        public CollectionJsonReader()
-        {
-            Template = new ReaderTemplateRepresentation<TEntity>();
-        }
-        
-        
-        public ReaderTemplateRepresentation<TEntity> Template { get; set; }
-
-        /*getters for convenience in c# code*/
-        public TEntity Entity { get { return Template.Entity; } }
-
-        public IEnumerable<DataRepresentation> Data { get { return Template.Data; } } 
-
-
-        public static CollectionJsonReader<TEntity> Deserialize(string jsonTemplate)
-        {
-            return JsonConvert.DeserializeObject(jsonTemplate, typeof(CollectionJsonReader<TEntity>)) as CollectionJsonReader<TEntity>
-                ?? new CollectionJsonReader<TEntity>();
-        }
-    }
-
-    
-    public class ReaderTemplateRepresentation<TEntity> where TEntity : class, new()
     {
         private TEntity _entity;
         private IList<DataRepresentation> _data = new List<DataRepresentation>();
@@ -39,9 +13,10 @@ namespace CollectionJsonExtended.Core
         public TEntity Entity
         {
             get { return _entity ?? this.MapFromData(); }
-            set { 
+            set
+            {
                 _entity = value;
-                //_data = null; //we could do this to have null for the data representation, if entity is already given. currently we gor for Data.Any()
+                //_data = null; //we could do this to have null for the data representation, if entity is already given. currently we gor for Data.Any() in MapFromData
             }
         }
 
@@ -49,6 +24,13 @@ namespace CollectionJsonExtended.Core
         {
             get { return _data; }
             set { _data = value; }
+        }
+
+
+        public static CollectionJsonReader<TEntity> Deserialize(string jsonTemplate)
+        {
+            return JsonConvert.DeserializeObject(jsonTemplate, typeof(CollectionJsonReader<TEntity>)) as CollectionJsonReader<TEntity>
+                ?? new CollectionJsonReader<TEntity>();
         }
     }
 }

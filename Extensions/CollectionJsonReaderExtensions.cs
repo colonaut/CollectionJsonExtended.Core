@@ -23,15 +23,19 @@ namespace CollectionJsonExtended.Core.Extensions
         private static readonly MethodInfo EnumerableToListMethod =
             typeof (Enumerable).GetMethod("ToList",
                 BindingFlags.Public | BindingFlags.Static);
-        
 
-        public static TEntity MapFromData<TEntity>(this ReaderTemplateRepresentation<TEntity> readerTemplateRepresentation)
+
+
+        public static TEntity MapFromData<TEntity>(this CollectionJsonReader<TEntity> collectionJsonReader)
             where TEntity : class, new()
         {
-            if (readerTemplateRepresentation.Data.Any())
-                return MapFromDataObjects(new TEntity(), readerTemplateRepresentation.Data) as TEntity; //if data list is empty, entity should be null (no content was set)
+            if (collectionJsonReader.Data.Any())
+                return MapFromDataObjects(new TEntity(),
+                    collectionJsonReader.Data)
+                    as TEntity; //if data list is empty, entity should be null (no content was set)
             return null;
         }
+
 
         static object MapFromDataObjects(object obj,
             IList<DataRepresentation> dataObjects)
