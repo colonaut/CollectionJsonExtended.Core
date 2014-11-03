@@ -9,6 +9,7 @@ using CollectionJsonExtended.Core.Extensions;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
+
 namespace CollectionJsonExtended.Core
 {
     public class DataRepresentationConverter : JsonConverter
@@ -24,8 +25,17 @@ namespace CollectionJsonExtended.Core
             return urlInfo.PrimaryKeyProperty;            
         }
 
-        static bool IsReference(PropertyInfo propertyInfo) //TODO an PropertyType extensionS binden...
+        //TODO: Reference ( wenn fertig an PropertyType extensions binden...)
+        static bool IsDenormalizedReference(PropertyInfo propertyInfo)
         {
+            return propertyInfo.PropertyType == typeof(DenormalizedReference<>);
+        }
+        
+        static bool IsReference(PropertyInfo propertyInfo) //TODO: Reference ( wenn fertig an PropertyType extensions binden...)
+        {
+            if (propertyInfo.PropertyType == typeof (DenormalizedReference<>))
+                return true;
+            
             var attribute =
                 propertyInfo.GetCustomAttribute<CollectionJsonReferenceAttribute>();
 
@@ -75,6 +85,11 @@ namespace CollectionJsonExtended.Core
                 if (IsReference(propertyInfo))
                 {
                     var x = "YES";
+                }
+
+                if (IsDenormalizedReference(propertyInfo))
+                {
+                    var y = "YES";
                 }
 
 
