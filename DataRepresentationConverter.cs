@@ -25,13 +25,13 @@ namespace CollectionJsonExtended.Core
             return urlInfo.PrimaryKeyProperty;            
         }
 
-        //TODO: Reference ( wenn fertig an PropertyType extensions binden...)
+        //TODO entity reference ( wenn fertig an PropertyType extensions binden...)
         static bool IsDenormalizedReference(PropertyInfo propertyInfo)
         {
             return propertyInfo.PropertyType == typeof(DenormalizedReference<>);
         }
         
-        static bool IsReference(PropertyInfo propertyInfo) //TODO: Reference ( wenn fertig an PropertyType extensions binden...)
+        static bool IsReference(PropertyInfo propertyInfo) //TODO entity reference ( wenn fertig an PropertyType extensions binden...)
         {
             if (propertyInfo.PropertyType == typeof (DenormalizedReference<>))
                 return true;
@@ -80,8 +80,11 @@ namespace CollectionJsonExtended.Core
 
             foreach (var propertyInfo in obj.GetType().GetProperties())
             {
-                //TODO: if we have an external entity here, we must provide it's query..., query with id1,id2, etc.. for collection of externals... /this applies to relations. (how?), for embedded the embedded item must provide it's link....? 
-                //for i.e. items this only happens if we convert to data! seriralizing to entity will not trigger this...
+                //TODO entity reference: if we have an external entity here, we must provide it's query...,
+                //query with id1,id2, etc.. for collection of externals... /this applies to relations. (how?),
+                //for embedded the embedded item must provide it's link....? 
+                //for i.e. items this only happens if we convert to data! seriralizing to entity will not
+                //trigger this...
                 if (IsReference(propertyInfo))
                 {
                     var x = "YES";
@@ -89,6 +92,7 @@ namespace CollectionJsonExtended.Core
 
                 if (IsDenormalizedReference(propertyInfo))
                 {
+                    //SingletonFactory<ReferenceUrlInfoCollection> add to collection here
                     var y = "YES";
                 }
 
@@ -148,7 +152,7 @@ namespace CollectionJsonExtended.Core
             foreach (var propertyInfo in type.GetProperties())
             {
                 //TODO we must find private setters and primary key properties here... and we must NOT serialize them
-                //TODO we must find a way to provide a query link or s.th in the template that offers a choice of entities for external entities! (we must extend the cj spec for that)
+                //TODO entity reference: we must find a way to provide a query link or s.th in the template that offers a choice of entities for external entities! (we must extend the cj spec for that)
 
                 //Here we evaluate if wwe have a reference attribute anf try to find
                 //an entry with the primary key matching they type to the property.
@@ -157,6 +161,11 @@ namespace CollectionJsonExtended.Core
                 if (IsReference(propertyInfo))
                 {
                     var x = "YES";
+                }
+
+                if (IsDenormalizedReference(propertyInfo))
+                {
+                    var y = "YES";
                 }
 
                 if (GetTemplateValueHandling(propertyInfo) == TemplateValueHandling.Ignore)

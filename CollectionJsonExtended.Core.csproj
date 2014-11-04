@@ -52,6 +52,7 @@
     <Compile Include="CollectionRepresentation.cs" />
     <Compile Include="DataRepresentation.cs" />
     <Compile Include="DataRepresentationConverter.cs" />
+    <Compile Include="DenormalizedReference.cs" />
     <Compile Include="ErrorRepresentation.cs" />
     <Compile Include="Extensions\CollectionJsonReaderExtensions.cs" />
     <Compile Include="Extensions\CollectionJsonWriterExtensions.cs" />

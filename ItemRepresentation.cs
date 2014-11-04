@@ -65,7 +65,7 @@ namespace CollectionJsonExtended.Core
         /*private static methods*/
         static string GetParsedVirtualPath(TEntity entity)
         {
-            //TODO: how to deal with renderType (TryFindSingle for i.e. Is.Item crashes, when we have another Is.Item that is for another renderType...)
+            //TODO CRITICAL how to deal with renderType (TryFindSingle for i.e. Is.Item crashes, when we have another Is.Item that is for another renderType...)
             //MayBe add another method?
             UrlInfoBase urlInfo;
             if (!SingletonFactory<UrlInfoCollection>.Instance
@@ -104,6 +104,11 @@ namespace CollectionJsonExtended.Core
                         settings));
         }
 
+
+        private class DenormalizedReferenceUrlInfoCollection
+        {
+            
+        }
 
         private class ReferenceUrlInfoCollection
         {
