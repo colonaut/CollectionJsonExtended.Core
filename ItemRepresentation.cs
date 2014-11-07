@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.ComponentModel.Design;
 using System.Linq;
 using System.Reflection;
 using CollectionJsonExtended.Core.Attributes;
@@ -95,16 +96,21 @@ namespace CollectionJsonExtended.Core
         static IEnumerable<LinkRepresentation<TEntity>> GetReferenceLinkRepresentations(TEntity entity,
             CollectionJsonSerializerSettings settings)
         {
+            //must:LinkRepresentation<PropertyType>(propertyInfo.Value(entity)) //<-if not null
+                    //var x = new LinkRepresentation<>()
+
             return SingletonFactory<ReferenceUrlInfoCollection>.Instance
                 .Find(typeof (TEntity))
-                .Select(tuple =>
-                    new LinkRepresentation<TEntity>(entity,
-                        tuple.Item1,
-                        tuple.Item2,
-                        settings));
+                .Where(tuple => tuple.Item2.GetValue(entity) != null) //ignore this resharper warning, we do mnot change start or end of the sequenxe while it's executed
+                .Select(tuple => new LinkRepresentation<TEntity>(entity,
+                    tuple.Item1,
+                    tuple.Item2,
+                    settings));
+
+
         }
 
-
+        
         private class DenormalizedReferenceUrlInfoCollection
         {
             
@@ -122,6 +128,7 @@ namespace CollectionJsonExtended.Core
 
             public IEnumerable<Tuple<UrlInfoBase, PropertyInfo>> Find(Type entityType)
             {
+                //var entityType = entity.GetType();
                 IList<Tuple<UrlInfoBase, PropertyInfo>> referenceUrlInfos;
                 if (_referenceUrlInfos.TryGetValue(entityType, out referenceUrlInfos))
                     return referenceUrlInfos;
@@ -129,6 +136,34 @@ namespace CollectionJsonExtended.Core
                 referenceUrlInfos = new List<Tuple<UrlInfoBase, PropertyInfo>>();
                 foreach (var propertyInfo in typeof (TEntity).GetProperties())
                 {
+
+                    var aa = propertyInfo.PropertyType.IsGenericType;
+                    //var bb = (propertyInfo.PropertyType.GetGenericTypeDefinition() == typeof (DenormalizedReference<>));
+                    var c = propertyInfo.PropertyType.Name.Contains("Denormalized");
+
+                    //checke denormalized reference zuerst
+                    //TODO REFACTOR!!!!
+                    if (propertyInfo.PropertyType.IsGenericType
+                        && propertyInfo.PropertyType.Name.Contains("Denormalized"))
+                    {
+                        var denormalizedReferenceType = propertyInfo.PropertyType.GetGenericArguments()[0];
+                        var denormalizedReferenceUrlInfo = SingletonFactory<UrlInfoCollection>.Instance
+                            .Find(denormalizedReferenceType, Is.Item)
+                            .SingleOrDefault();
+                        if (denormalizedReferenceUrlInfo != null)
+                        {
+                            denormalizedReferenceUrlInfo = denormalizedReferenceUrlInfo.Clone();
+                            denormalizedReferenceUrlInfo.Relation = "dref[" +
+                                                                    denormalizedReferenceType.Name.ToLowerInvariant() +
+                                                                    "]";
+                            referenceUrlInfos.Add(new Tuple<UrlInfoBase,
+                                PropertyInfo>(denormalizedReferenceUrlInfo, propertyInfo));
+                            continue;
+                        }
+                    }
+                    
+                    //the old attribute way
+
                     var attr = propertyInfo
                         .GetCustomAttribute<CollectionJsonReferenceAttribute>();
                     if (attr == null)

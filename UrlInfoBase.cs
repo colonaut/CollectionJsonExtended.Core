@@ -35,7 +35,22 @@ namespace CollectionJsonExtended.Core
             SingletonFactory<UrlInfoCollection>.Instance
                 .Add(this);
             _isPublished = true;
-        }        
+        }
+
+        public virtual UrlInfoBase Clone()
+        {
+            return new UrlInfoBase(this.EntityType)
+                   {
+                       Kind = Kind,
+                       PrimaryKeyProperty = PrimaryKeyProperty,
+                       PrimaryKeyTemplate = PrimaryKeyTemplate,
+                       QueryParams = QueryParams,
+                       Relation = Render,
+                       Render = Relation,
+                       VirtualPath = VirtualPath,
+                       _isPublished = _isPublished
+                   };
+        }
     }
 
 }

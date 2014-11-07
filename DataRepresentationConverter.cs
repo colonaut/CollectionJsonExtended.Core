@@ -28,13 +28,14 @@ namespace CollectionJsonExtended.Core
         //TODO entity reference ( wenn fertig an PropertyType extensions binden...)
         static bool IsDenormalizedReference(PropertyInfo propertyInfo)
         {
-            return propertyInfo.PropertyType == typeof(DenormalizedReference<>);
+            var pt = propertyInfo.PropertyType;
+            return pt.IsGenericType && pt.GetGenericTypeDefinition() == typeof (DenormalizedReference<>);
         }
         
         static bool IsReference(PropertyInfo propertyInfo) //TODO entity reference ( wenn fertig an PropertyType extensions binden...)
         {
-            if (propertyInfo.PropertyType == typeof (DenormalizedReference<>))
-                return true;
+            //if (propertyInfo.PropertyType == typeof (DenormalizedReference<>))
+            //    return true;
             
             var attribute =
                 propertyInfo.GetCustomAttribute<CollectionJsonReferenceAttribute>();
@@ -87,7 +88,7 @@ namespace CollectionJsonExtended.Core
                 //trigger this...
                 if (IsReference(propertyInfo))
                 {
-                    var x = "YES";
+                    var x = "YES";                    
                 }
 
                 if (IsDenormalizedReference(propertyInfo))
@@ -165,6 +166,7 @@ namespace CollectionJsonExtended.Core
 
                 if (IsDenormalizedReference(propertyInfo))
                 {
+                    //Singleton<UrlInfoCollection>.Instance.Add();                                           
                     var y = "YES";
                 }
 

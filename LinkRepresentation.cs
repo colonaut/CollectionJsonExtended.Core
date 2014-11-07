@@ -10,7 +10,7 @@ namespace CollectionJsonExtended.Core
     {
         readonly UrlInfoBase _urlInfo;
         readonly TEntity _entity;
-        readonly PropertyInfo _referencePrimaryKeyProperty;
+        readonly PropertyInfo _referenceProperty;
 
         public LinkRepresentation(UrlInfoBase referenceUrlInfo,
             CollectionJsonSerializerSettings settings)
@@ -30,13 +30,13 @@ namespace CollectionJsonExtended.Core
 
         public LinkRepresentation(TEntity entity,
             UrlInfoBase referenceUrlInfo,
-            PropertyInfo referencePrimaryKeyProperty,
+            PropertyInfo referenceProperty,
             CollectionJsonSerializerSettings settings)
             : base(settings)
         {
             _entity = entity;
             _urlInfo = referenceUrlInfo;
-            _referencePrimaryKeyProperty = referencePrimaryKeyProperty;
+            _referenceProperty = referenceProperty;
         }
 
         /*properties*/
@@ -54,7 +54,7 @@ namespace CollectionJsonExtended.Core
             {
                 return GetParsedVirtualPath(_entity,
                     _urlInfo,
-                    _referencePrimaryKeyProperty);
+                    _referenceProperty);
             }
         } 
 
@@ -71,19 +71,24 @@ namespace CollectionJsonExtended.Core
         /*private static methods*/
         static string GetParsedVirtualPath(TEntity entity,
             UrlInfoBase urlInfo,
-            PropertyInfo referencePrimaryKeyProperty = null)
+            PropertyInfo referenceProperty = null)
         {
             if (entity == null)
                 return urlInfo.VirtualPath;
 
-            var primaryKeyValue = referencePrimaryKeyProperty != null
-                ? referencePrimaryKeyProperty.GetValue(entity)
-                : urlInfo.PrimaryKeyProperty.GetValue(entity);
+            var entityForPrimaryKeyProperty = referenceProperty != null
+                ? referenceProperty.GetValue(entity)
+                : entity;
+
+            if (entityForPrimaryKeyProperty == null)
+                return urlInfo.VirtualPath; //TODO CANTHISHAPPEN handle to not create the link... or this sgould be done before....?
+
+            var primaryKeyValue = urlInfo.PrimaryKeyProperty.GetValue(entityForPrimaryKeyProperty); //TODO: SOLVE we must giv the complete reference in here, not the entity ^^
 
             var virtualPath = urlInfo.VirtualPath.Replace(urlInfo.PrimaryKeyTemplate,
                 primaryKeyValue.ToString());
 
-            //TODO if we get null (i.e at a reference with no id set) a link should not be created (???)
+            //TODO CANTHISHAPPEN if we get null (i.e at a reference with no id set or being null) a link should not be created (???)
 
             return virtualPath;
         }
