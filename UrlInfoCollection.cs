@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 
 namespace CollectionJsonExtended.Core
@@ -30,13 +31,11 @@ namespace CollectionJsonExtended.Core
     
     public sealed class UrlInfoCollection : IUrlInfoCollection
     {
-        readonly IDictionary<Type, IList<UrlInfoBase>> _collectionByEntityType;
         readonly IList<UrlInfoBase> _collection;
         
         public UrlInfoCollection()
         {
             _collection = new List<UrlInfoBase>();
-            _collectionByEntityType = new Dictionary<Type, IList<UrlInfoBase>>();
         }
 
 
@@ -48,15 +47,14 @@ namespace CollectionJsonExtended.Core
             //return true;
         }
 
+        public void AddRange(IEnumerable<UrlInfoBase> urlInfos)
+        {
+            _collection.ToList().AddRange(urlInfos);
+        }
+
         public IEnumerable<UrlInfoBase> Find(Type entityType)
         {
-            IList<UrlInfoBase> result;
-            if (!_collectionByEntityType.TryGetValue(entityType, out result))
-            {
-                result = _collection.Where(c => c.EntityType == entityType).ToList();
-                _collectionByEntityType.Add(entityType, result);
-            }
-            return _collectionByEntityType[entityType];
+            return _collection.Where(c => c.EntityType == entityType).ToList();
         }
 
         public IEnumerable<UrlInfoBase> Find(Type entityType, Is kind)
@@ -74,6 +72,14 @@ namespace CollectionJsonExtended.Core
             return Find<TInfo>(entityType).Where(c => c.Kind == kind).ToList();
         }
 
+        public bool TryFindSingle(Type entityType, Is kind, out UrlInfoBase value)
+        {
+            value = Find(entityType, kind).SingleOrDefault();
+            if (value != null)
+                return true;
+            return false;
+        }
+        
         public bool TryFindSingle<TInfo>(Type entityType, Is kind, out TInfo value) where TInfo : UrlInfoBase
         {
             value = Find<TInfo>(entityType, kind).SingleOrDefault();
@@ -82,13 +88,6 @@ namespace CollectionJsonExtended.Core
             return false;
         }
 
-        public bool TryFindSingle(Type entityType, Is kind, out UrlInfoBase value)
-        {
-            value = Find(entityType, kind).SingleOrDefault();
-            if (value != null)
-                return true;
-            return false;
-        }
 
     }
 }

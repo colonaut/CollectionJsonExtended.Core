@@ -13,7 +13,11 @@ namespace CollectionJsonExtended.Core
     {
         public int Id { get; set; }
         public string Name { get; set; }
-        //public Uri Link { get; set; }
+
+        public T AsNormalized()
+        {
+            return (T)(object)this;
+        }
 
         public static implicit operator DenormalizedReference<T>(T entity)
         {
@@ -23,6 +27,7 @@ namespace CollectionJsonExtended.Core
                 Name = entity.Name
             };
         }
+
     }
         
 }

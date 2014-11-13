@@ -10,7 +10,7 @@ namespace CollectionJsonExtended.Core
     {
         readonly UrlInfoBase _urlInfo;
         readonly TEntity _entity;
-        readonly PropertyInfo _referenceProperty;
+        readonly PropertyInfo _referenceProperty; //TODO: obolete
 
         public LinkRepresentation(UrlInfoBase referenceUrlInfo,
             CollectionJsonSerializerSettings settings)
@@ -27,7 +27,8 @@ namespace CollectionJsonExtended.Core
             _entity = entity;
             _urlInfo = urlInfo;
         }
-
+        
+        [Obsolete]
         public LinkRepresentation(TEntity entity,
             UrlInfoBase referenceUrlInfo,
             PropertyInfo referenceProperty,
@@ -69,6 +70,7 @@ namespace CollectionJsonExtended.Core
 
         
         /*private static methods*/
+
         static string GetParsedVirtualPath(TEntity entity,
             UrlInfoBase urlInfo,
             PropertyInfo referenceProperty = null)
@@ -77,8 +79,22 @@ namespace CollectionJsonExtended.Core
                 return urlInfo.VirtualPath;
 
             var entityForPrimaryKeyProperty = referenceProperty != null
-                ? referenceProperty.GetValue(entity)
-                : entity;
+               ? referenceProperty.GetValue(entity)
+               : entity;
+            //try this attempt in stead of the o
+            var dnrUrlInfo = urlInfo as DenormalizedReferenceUrlInfo;
+            if (dnrUrlInfo != null && dnrUrlInfo.PointerProperty != null)
+            {
+                var pval = dnrUrlInfo.PointerProperty.GetValue(entity);
+                var xval = dnrUrlInfo.DenormalizedPrimaryKeyProperty.GetValue(pval);
+                
+                return dnrUrlInfo.VirtualPath.Replace(dnrUrlInfo.PrimaryKeyTemplate,
+
+                        xval.ToString());
+            }
+
+
+           
 
             if (entityForPrimaryKeyProperty == null)
                 return urlInfo.VirtualPath; //TODO CANTHISHAPPEN handle to not create the link... or this sgould be done before....?

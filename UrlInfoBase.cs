@@ -37,7 +37,7 @@ namespace CollectionJsonExtended.Core
             _isPublished = true;
         }
 
-        public virtual UrlInfoBase Clone()
+        public virtual UrlInfoBase Clone() //depr! remove this in favor of denrefurlinfo
         {
             return new UrlInfoBase(this.EntityType)
                    {

@@ -85,13 +85,57 @@ namespace CollectionJsonExtended.Core
                 .Find(typeof(TEntity), Is.ItemLink)
                 .Select(ui => new LinkRepresentation<TEntity>(entity, ui, settings))
                 .ToList();
+            var dnrInfos = GetDenormalizedReferenceUrlInfos(typeof (TEntity))
+                .Select(dnrui => new LinkRepresentation<TEntity>(entity, dnrui, settings))
+                .ToList();
+            links.AddRange(dnrInfos);
 
-            var referenceLinks = GetReferenceLinkRepresentations(entity, settings);
-            links.AddRange(referenceLinks);
+            //var referenceLinks = GetReferenceLinkRepresentations(entity, settings);
+            //links.AddRange(referenceLinks);
 
             return links.Any()
                 ? links : null;
         }
+
+        static List<Type> _handledDenormalizedReferenceTypes = new List<Type>();
+        static IEnumerable<DenormalizedReferenceUrlInfo> GetDenormalizedReferenceUrlInfos(Type entityType)
+        {
+            if (_handledDenormalizedReferenceTypes.Contains(entityType))
+                return SingletonFactory<UrlInfoCollection>.Instance
+                    .Find<DenormalizedReferenceUrlInfo>(entityType);
+            
+            _handledDenormalizedReferenceTypes.Add(entityType);
+
+            var result = new List<DenormalizedReferenceUrlInfo>();
+            foreach (var propertyInfo in typeof (TEntity).GetProperties())
+            {
+                //TODO make better
+                var aa = propertyInfo.PropertyType.IsGenericType;
+                //var bb = (propertyInfo.PropertyType.GetGenericTypeDefinition() == typeof (DenormalizedReference<>));
+                var c = propertyInfo.PropertyType.Name.Contains("Denormalized");
+
+                if (propertyInfo.PropertyType.IsGenericType
+                    && propertyInfo.PropertyType.Name.Contains("Denormalized"))
+                {
+                    var normalizedReferenceType = propertyInfo.PropertyType.GetGenericArguments()[0];
+                    
+                    UrlInfoBase urlInfoBase;
+                    if (SingletonFactory<UrlInfoCollection>.Instance
+                        .TryFindSingle(normalizedReferenceType, Is.Item, out urlInfoBase))
+                    {
+                        var denormalizedReferenceUrlInfo
+                            = new DenormalizedReferenceUrlInfo(urlInfoBase,
+                                typeof(TEntity),
+                                propertyInfo);
+                        SingletonFactory<UrlInfoCollection>.Instance
+                            .Add(denormalizedReferenceUrlInfo);
+                        result.Add(denormalizedReferenceUrlInfo);
+                    }
+                }
+            }
+            return result;
+        }
+        
 
         static IEnumerable<LinkRepresentation<TEntity>> GetReferenceLinkRepresentations(TEntity entity,
             CollectionJsonSerializerSettings settings)
@@ -106,14 +150,6 @@ namespace CollectionJsonExtended.Core
                     tuple.Item1,
                     tuple.Item2,
                     settings));
-
-
-        }
-
-        
-        private class DenormalizedReferenceUrlInfoCollection
-        {
-            
         }
 
         private class ReferenceUrlInfoCollection
@@ -128,7 +164,6 @@ namespace CollectionJsonExtended.Core
 
             public IEnumerable<Tuple<UrlInfoBase, PropertyInfo>> Find(Type entityType)
             {
-                //var entityType = entity.GetType();
                 IList<Tuple<UrlInfoBase, PropertyInfo>> referenceUrlInfos;
                 if (_referenceUrlInfos.TryGetValue(entityType, out referenceUrlInfos))
                     return referenceUrlInfos;
@@ -141,29 +176,8 @@ namespace CollectionJsonExtended.Core
                     //var bb = (propertyInfo.PropertyType.GetGenericTypeDefinition() == typeof (DenormalizedReference<>));
                     var c = propertyInfo.PropertyType.Name.Contains("Denormalized");
 
-                    //checke denormalized reference zuerst
-                    //TODO REFACTOR!!!!
-                    if (propertyInfo.PropertyType.IsGenericType
-                        && propertyInfo.PropertyType.Name.Contains("Denormalized"))
-                    {
-                        var denormalizedReferenceType = propertyInfo.PropertyType.GetGenericArguments()[0];
-                        var denormalizedReferenceUrlInfo = SingletonFactory<UrlInfoCollection>.Instance
-                            .Find(denormalizedReferenceType, Is.Item)
-                            .SingleOrDefault();
-                        if (denormalizedReferenceUrlInfo != null)
-                        {
-                            denormalizedReferenceUrlInfo = denormalizedReferenceUrlInfo.Clone();
-                            denormalizedReferenceUrlInfo.Relation = "dref[" +
-                                                                    denormalizedReferenceType.Name.ToLowerInvariant() +
-                                                                    "]";
-                            referenceUrlInfos.Add(new Tuple<UrlInfoBase,
-                                PropertyInfo>(denormalizedReferenceUrlInfo, propertyInfo));
-                            continue;
-                        }
-                    }
                     
                     //the old attribute way
-
                     var attr = propertyInfo
                         .GetCustomAttribute<CollectionJsonReferenceAttribute>();
                     if (attr == null)
@@ -188,5 +202,41 @@ namespace CollectionJsonExtended.Core
                 return referenceUrlInfos;
             }
         }
+    }
+
+
+    internal sealed class DenormalizedReferenceUrlInfo : UrlInfoBase
+    {
+        DenormalizedReferenceUrlInfo(Type entityType)
+            : base(entityType)
+        {
+        }
+
+        public DenormalizedReferenceUrlInfo(UrlInfoBase entityUrlInfo,
+            Type pointerType,
+            PropertyInfo pointerProperty)
+            : this(entityUrlInfo.EntityType)
+        {
+            Kind = entityUrlInfo.Kind;
+            PrimaryKeyProperty = entityUrlInfo.PrimaryKeyProperty;
+            PrimaryKeyTemplate = entityUrlInfo.PrimaryKeyTemplate;
+            QueryParams = entityUrlInfo.QueryParams;
+            Relation = entityUrlInfo.Render;
+            Render = entityUrlInfo.Relation;
+            VirtualPath = entityUrlInfo.VirtualPath;
+
+            PointerType = pointerType;
+            PointerProperty = pointerProperty;
+
+            var denormalizedReferenceType =
+                    typeof(DenormalizedReference<>).MakeGenericType(this.EntityType);
+            DenormalizedPrimaryKeyProperty =
+                denormalizedReferenceType.GetProperty(this.PrimaryKeyProperty.Name);
+        }
+
+        public Type PointerType { get; private set; }
+        public PropertyInfo PointerProperty { get; private set; }
+        public PropertyInfo DenormalizedPrimaryKeyProperty { get; private set; }
+        public new string Relation { get; private set; }
     }
 }
