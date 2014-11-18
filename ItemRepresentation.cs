@@ -69,7 +69,7 @@ namespace CollectionJsonExtended.Core
             //TODO CRITICAL how to deal with renderType (TryFindSingle for i.e. Is.Item crashes, when we have another Is.Item that is for another renderType...)
             //MayBe add another method?
             UrlInfoBase urlInfo;
-            if (!SingletonFactory<UrlInfoCollection>.Instance
+            if (!SingletonFactory<UrlInfoCollection>.Instance //THIS could be the error, it's not single! (we must cjeck render type... or urlInfo type or something)
                 .TryFindSingle(typeof (TEntity), Is.Item, out urlInfo))
                 return null;
 
@@ -85,10 +85,10 @@ namespace CollectionJsonExtended.Core
                 .Find(typeof(TEntity), Is.ItemLink)
                 .Select(ui => new LinkRepresentation<TEntity>(entity, ui, settings))
                 .ToList();
-            var dnrInfos = GetDenormalizedReferenceUrlInfos(typeof (TEntity))
+            var denormalizedReferenceLinks   = GetDenormalizedReferenceUrlInfos(typeof (TEntity))
                 .Select(dnrui => new LinkRepresentation<TEntity>(entity, dnrui, settings))
                 .ToList();
-            links.AddRange(dnrInfos);
+            links.AddRange(denormalizedReferenceLinks);
 
             //var referenceLinks = GetReferenceLinkRepresentations(entity, settings);
             //links.AddRange(referenceLinks);
@@ -98,15 +98,15 @@ namespace CollectionJsonExtended.Core
         }
 
         static List<Type> _handledDenormalizedReferenceTypes = new List<Type>();
-        static IEnumerable<DenormalizedReferenceUrlInfo> GetDenormalizedReferenceUrlInfos(Type entityType)
+        static IEnumerable<DenormalizedReferenceInfo> GetDenormalizedReferenceUrlInfos(Type entityType)
         {
             if (_handledDenormalizedReferenceTypes.Contains(entityType))
                 return SingletonFactory<UrlInfoCollection>.Instance
-                    .Find<DenormalizedReferenceUrlInfo>(entityType);
+                    .Find<DenormalizedReferenceInfo>(entityType);
             
             _handledDenormalizedReferenceTypes.Add(entityType);
 
-            var result = new List<DenormalizedReferenceUrlInfo>();
+            var result = new List<DenormalizedReferenceInfo>();
             foreach (var propertyInfo in typeof (TEntity).GetProperties())
             {
                 //TODO make better
@@ -123,13 +123,13 @@ namespace CollectionJsonExtended.Core
                     if (SingletonFactory<UrlInfoCollection>.Instance
                         .TryFindSingle(normalizedReferenceType, Is.Item, out urlInfoBase))
                     {
-                        var denormalizedReferenceUrlInfo
-                            = new DenormalizedReferenceUrlInfo(urlInfoBase,
+                        var denormalizedReferenceInfo
+                            = new DenormalizedReferenceInfo(urlInfoBase,
                                 typeof(TEntity),
                                 propertyInfo);
                         SingletonFactory<UrlInfoCollection>.Instance
-                            .Add(denormalizedReferenceUrlInfo);
-                        result.Add(denormalizedReferenceUrlInfo);
+                            .Add(denormalizedReferenceInfo);
+                        result.Add(denormalizedReferenceInfo);
                     }
                 }
             }
@@ -205,14 +205,14 @@ namespace CollectionJsonExtended.Core
     }
 
 
-    internal sealed class DenormalizedReferenceUrlInfo : UrlInfoBase
+    internal sealed class DenormalizedReferenceInfo : UrlInfoBase
     {
-        DenormalizedReferenceUrlInfo(Type entityType)
+        DenormalizedReferenceInfo(Type entityType)
             : base(entityType)
         {
         }
 
-        public DenormalizedReferenceUrlInfo(UrlInfoBase entityUrlInfo,
+        public DenormalizedReferenceInfo(UrlInfoBase entityUrlInfo,
             Type pointerType,
             PropertyInfo pointerProperty)
             : this(entityUrlInfo.EntityType)
