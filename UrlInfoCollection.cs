@@ -75,17 +75,13 @@ namespace CollectionJsonExtended.Core
         public bool TryFindSingle(Type entityType, Is kind, out UrlInfoBase value)
         {
             value = Find(entityType, kind).SingleOrDefault();
-            if (value != null)
-                return true;
-            return false;
+            return value != null;
         }
         
         public bool TryFindSingle<TInfo>(Type entityType, Is kind, out TInfo value) where TInfo : UrlInfoBase
         {
             value = Find<TInfo>(entityType, kind).SingleOrDefault();
-            if (value != null)
-                return true;
-            return false;
+            return value != null;
         }
 
 

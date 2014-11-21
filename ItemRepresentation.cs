@@ -97,28 +97,22 @@ namespace CollectionJsonExtended.Core
                 ? links : null;
         }
 
-        static List<Type> _handledDenormalizedReferenceTypes = new List<Type>();
+        static List<Type> _entitiesCheckedForDenormalizedReferenceTypes = new List<Type>();
         static IEnumerable<DenormalizedReferenceInfo> GetDenormalizedReferenceUrlInfos(Type entityType)
         {
-            if (_handledDenormalizedReferenceTypes.Contains(entityType))
+            if (_entitiesCheckedForDenormalizedReferenceTypes.Contains(entityType))
                 return SingletonFactory<UrlInfoCollection>.Instance
                     .Find<DenormalizedReferenceInfo>(entityType);
             
-            _handledDenormalizedReferenceTypes.Add(entityType);
+            _entitiesCheckedForDenormalizedReferenceTypes.Add(entityType);
 
             var result = new List<DenormalizedReferenceInfo>();
             foreach (var propertyInfo in typeof (TEntity).GetProperties())
             {
-                //TODO make better
-                var aa = propertyInfo.PropertyType.IsGenericType;
-                //var bb = (propertyInfo.PropertyType.GetGenericTypeDefinition() == typeof (DenormalizedReference<>));
-                var c = propertyInfo.PropertyType.Name.Contains("Denormalized");
-
-                if (propertyInfo.PropertyType.IsGenericType
-                    && propertyInfo.PropertyType.Name.Contains("Denormalized"))
+                Type normalizedReferenceType;
+                if (TryGetNormalizedTypeFromDenormalizedReference(propertyInfo.PropertyType,
+                        out normalizedReferenceType))
                 {
-                    var normalizedReferenceType = propertyInfo.PropertyType.GetGenericArguments()[0];
-                    
                     UrlInfoBase urlInfoBase;
                     if (SingletonFactory<UrlInfoCollection>.Instance
                         .TryFindSingle(normalizedReferenceType, Is.Item, out urlInfoBase))
@@ -135,7 +129,23 @@ namespace CollectionJsonExtended.Core
             }
             return result;
         }
-        
+
+        static bool TryGetNormalizedTypeFromDenormalizedReference(Type type,
+            out Type normalizedType)
+        {
+            while (type != null)
+            {
+                if (type.IsGenericType
+                    && type.GetGenericTypeDefinition() == typeof(DenormalizedReference<>))
+                {
+                    normalizedType = type.GetGenericArguments()[0];
+                    return true;
+                }
+                type = type.BaseType;
+            }
+            normalizedType = null;
+            return false;
+        }
 
         static IEnumerable<LinkRepresentation<TEntity>> GetReferenceLinkRepresentations(TEntity entity,
             CollectionJsonSerializerSettings settings)

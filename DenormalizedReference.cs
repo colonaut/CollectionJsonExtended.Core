@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 
 namespace CollectionJsonExtended.Core
 {
@@ -14,20 +15,17 @@ namespace CollectionJsonExtended.Core
         public int Id { get; set; }
         public string Name { get; set; }
 
-        public T AsNormalized()
-        {
-            return (T)(object)this;
-        }
-
         public static implicit operator DenormalizedReference<T>(T entity)
         {
+            
             return new DenormalizedReference<T>
             {
                 Id = entity.Id,
                 Name = entity.Name
             };
         }
-
     }
-        
+    
+
+
 }

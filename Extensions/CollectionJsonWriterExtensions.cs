@@ -32,8 +32,6 @@ namespace CollectionJsonExtended.Core
 
             return JsonConvert.SerializeObject(representation, settings.Formatting, jsonSerializerSettings);
         }
-
-
     }
 
 }
