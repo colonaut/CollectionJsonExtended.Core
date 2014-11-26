@@ -19,7 +19,7 @@ namespace CollectionJsonExtended.Core
         static PropertyInfo GetPrimaryKeyProperty(Type entityType) //TODO an Type extension binden....
         {
             UrlInfoBase urlInfo;
-            if (!SingletonFactory<UrlInfoCollection>.Instance
+            if (!SingletonFactory<UrlInfoCache>.Instance
                 .TryFindSingle(entityType, Is.Item, out urlInfo))
                 return null;
             return urlInfo.PrimaryKeyProperty;            
@@ -93,7 +93,7 @@ namespace CollectionJsonExtended.Core
 
                 if (IsDenormalizedReference(propertyInfo))
                 {
-                    //SingletonFactory<ReferenceUrlInfoCollection> add to collection here
+                    //SingletonFactory<ReferenceUrlInfoCache> add to collection here
                     var y = "YES";
                 }
 

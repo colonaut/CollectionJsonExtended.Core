@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Globalization;
 using System.Linq;
 
 namespace CollectionJsonExtended.Core
@@ -18,7 +17,7 @@ namespace CollectionJsonExtended.Core
         Update
     }
     
-    public interface IUrlInfoCollection
+    public interface IUrlInfoCache
     {
         void Add(UrlInfoBase urlInfo);
 
@@ -29,27 +28,22 @@ namespace CollectionJsonExtended.Core
         bool TryFindSingle(Type entityType, Is kind, out UrlInfoBase value);
     }
     
-    public sealed class UrlInfoCollection : IUrlInfoCollection
+    public sealed class UrlInfoCache : IUrlInfoCache
     {
         readonly IList<UrlInfoBase> _collection;
         
-        public UrlInfoCollection()
+        public UrlInfoCache()
         {
             _collection = new List<UrlInfoBase>();
         }
 
-
+        
         public void Add(UrlInfoBase urlInfo)
         {
             //if (_collection.Contains(urlInfo)) //prevent multiple records of the same instance
             //    return false;
             _collection.Add(urlInfo);
             //return true;
-        }
-
-        public void AddRange(IEnumerable<UrlInfoBase> urlInfos)
-        {
-            _collection.ToList().AddRange(urlInfos);
         }
 
         public IEnumerable<UrlInfoBase> Find(Type entityType)

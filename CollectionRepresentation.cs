@@ -77,7 +77,7 @@ namespace CollectionJsonExtended.Core
         static string GetParsedVirtualPath()
         {
             UrlInfoBase urlInfo;
-            if (!SingletonFactory<UrlInfoCollection>.Instance
+            if (!SingletonFactory<UrlInfoCache>.Instance
                 .TryFindSingle(typeof(TEntity), Is.Base, out urlInfo))
                 throw new AmbiguousMatchException("Could not find unique UrlInfo for type " + typeof(TEntity).FullName);
             return urlInfo.VirtualPath;
@@ -85,7 +85,7 @@ namespace CollectionJsonExtended.Core
 
         static IEnumerable<QueryRepresentation> GetQueryRepresentations(CollectionJsonSerializerSettings settings)
         {
-            var queries = SingletonFactory<UrlInfoCollection>.Instance
+            var queries = SingletonFactory<UrlInfoCache>.Instance
                 .Find(typeof (TEntity), Is.Query)
                 .Select(ui => new QueryRepresentation(ui, settings))
                 .ToList();
@@ -95,7 +95,7 @@ namespace CollectionJsonExtended.Core
 
         static IEnumerable<LinkRepresentation<TEntity>> GetLinkRepresentations(CollectionJsonSerializerSettings settings)
         {
-            var links = SingletonFactory<UrlInfoCollection>.Instance
+            var links = SingletonFactory<UrlInfoCache>.Instance
                 .Find(typeof(TEntity), Is.BaseLink)
                 .Select(ui => new LinkRepresentation<TEntity>(ui, settings))
                 .ToList();

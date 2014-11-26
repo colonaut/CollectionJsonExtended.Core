@@ -32,7 +32,7 @@ namespace CollectionJsonExtended.Core
         {
             if (_isPublished)
                 return;
-            SingletonFactory<UrlInfoCollection>.Instance
+            SingletonFactory<UrlInfoCache>.Instance
                 .Add(this);
             _isPublished = true;
         }
